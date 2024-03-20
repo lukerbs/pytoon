@@ -1,0 +1,466 @@
+{
+    "emotions": {
+        "explain": [
+            {
+                "image_files": {
+                    "open": "/assets/poses/1.png",
+                    "middle": "/assets/poses/2.png",
+                    "shut": "/assets/poses/3.png"
+                },
+                "mouth_coordinates": {
+                    "x": 391.8,
+                    "y": 501.3,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/4.png",
+                    "middle": "/assets/poses/5.png",
+                    "shut": "/assets/poses/6.png"
+                },
+                "mouth_coordinates": {
+                    "x": 500.1,
+                    "y": 489.3,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/7.png",
+                    "middle": "/assets/poses/8.png",
+                    "shut": "/assets/poses/9.png"
+                },
+                "mouth_coordinates": {
+                    "x": 372.3,
+                    "y": 513.0,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/10.png",
+                    "middle": "/assets/poses/11.png",
+                    "shut": "/assets/poses/12.png"
+                },
+                "mouth_coordinates": {
+                    "x": 411.6,
+                    "y": 442.5,
+                    "scale_x": 1.0,
+                    "scale_y": 0.912,
+                    "flip_x": false,
+                    "rotation": 7.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/13.png",
+                    "middle": "/assets/poses/14.png",
+                    "shut": "/assets/poses/15.png"
+                },
+                "mouth_coordinates": {
+                    "x": 462.6,
+                    "y": 489.6,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            }
+        ],
+        "happy": [
+            {
+                "image_files": {
+                    "open": "/assets/poses/16.png",
+                    "middle": "/assets/poses/17.png",
+                    "shut": "/assets/poses/18.png"
+                },
+                "mouth_coordinates": {
+                    "x": 346.8,
+                    "y": 450.9,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/19.png",
+                    "middle": "/assets/poses/20.png",
+                    "shut": "/assets/poses/21.png"
+                },
+                "mouth_coordinates": {
+                    "x": 369.9,
+                    "y": 513.9,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/22.png",
+                    "middle": "/assets/poses/23.png",
+                    "shut": "/assets/poses/24.png"
+                },
+                "mouth_coordinates": {
+                    "x": 492.9,
+                    "y": 500.4,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 11.6
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/25.png",
+                    "middle": "/assets/poses/26.png",
+                    "shut": "/assets/poses/27.png"
+                },
+                "mouth_coordinates": {
+                    "x": 390.9,
+                    "y": 498.3,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/28.png",
+                    "middle": "/assets/poses/29.png",
+                    "shut": "/assets/poses/30.png"
+                },
+                "mouth_coordinates": {
+                    "x": 521.7,
+                    "y": 488.4,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": true,
+                    "rotation": 1.6
+                }
+            }
+        ],
+        "sad": [
+            {
+                "image_files": {
+                    "open": "/assets/poses/31.png",
+                    "middle": "/assets/poses/32.png",
+                    "shut": "/assets/poses/33.png"
+                },
+                "mouth_coordinates": {
+                    "x": 345.6,
+                    "y": 665.1,
+                    "scale_x": 1.0,
+                    "scale_y": 0.944,
+                    "flip_x": false,
+                    "rotation": -19.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/34.png",
+                    "middle": "/assets/poses/35.png",
+                    "shut": "/assets/poses/36.png"
+                },
+                "mouth_coordinates": {
+                    "x": 484.8,
+                    "y": 438.6,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 20.2
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/37.png",
+                    "middle": "/assets/poses/38.png",
+                    "shut": "/assets/poses/39.png"
+                },
+                "mouth_coordinates": {
+                    "x": 459.6,
+                    "y": 541.8,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": true,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/40.png",
+                    "middle": "/assets/poses/41.png",
+                    "shut": "/assets/poses/42.png"
+                },
+                "mouth_coordinates": {
+                    "x": 407.7,
+                    "y": 486.9,
+                    "scale_x": 1.0,
+                    "scale_y": 0.926,
+                    "flip_x": false,
+                    "rotation": 8.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/43.png",
+                    "middle": "/assets/poses/44.png",
+                    "shut": "/assets/poses/45.png"
+                },
+                "mouth_coordinates": {
+                    "x": 533.4,
+                    "y": 521.1,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            }
+        ],
+        "angry": [
+            {
+                "image_files": {
+                    "open": "/assets/poses/46.png",
+                    "middle": "/assets/poses/47.png",
+                    "shut": "/assets/poses/48.png"
+                },
+                "mouth_coordinates": {
+                    "x": 440.7,
+                    "y": 482.7,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": -5.6
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/49.png",
+                    "middle": "/assets/poses/50.png",
+                    "shut": "/assets/poses/51.png"
+                },
+                "mouth_coordinates": {
+                    "x": 486.6,
+                    "y": 424.2,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 10.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/52.png",
+                    "middle": "/assets/poses/53.png",
+                    "shut": "/assets/poses/54.png"
+                },
+                "mouth_coordinates": {
+                    "x": 402.9,
+                    "y": 437.1,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": -18.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/55.png",
+                    "middle": "/assets/poses/56.png",
+                    "shut": "/assets/poses/57.png"
+                },
+                "mouth_coordinates": {
+                    "x": 475.2,
+                    "y": 470.1,
+                    "scale_x": 1.0,
+                    "scale_y": 0.907,
+                    "flip_x": false,
+                    "rotation": 6.8
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/58.png",
+                    "middle": "/assets/poses/59.png",
+                    "shut": "/assets/poses/60.png"
+                },
+                "mouth_coordinates": {
+                    "x": 613.8,
+                    "y": 510.3,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": true,
+                    "rotation": 0.0
+                }
+            }
+        ],
+        "confused": [
+            {
+                "image_files": {
+                    "open": "/assets/poses/61.png",
+                    "middle": "/assets/poses/62.png",
+                    "shut": "/assets/poses/63.png"
+                },
+                "mouth_coordinates": {
+                    "x": 397.2,
+                    "y": 497.7,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.0
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/64.png",
+                    "middle": "/assets/poses/65.png",
+                    "shut": "/assets/poses/66.png"
+                },
+                "mouth_coordinates": {
+                    "x": 479.7,
+                    "y": 509.4,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 10.7
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/67.png",
+                    "middle": "/assets/poses/68.png",
+                    "shut": "/assets/poses/69.png"
+                },
+                "mouth_coordinates": {
+                    "x": 536.7,
+                    "y": 457.5,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": true,
+                    "rotation": -12.2
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/70.png",
+                    "middle": "/assets/poses/71.png",
+                    "shut": "/assets/poses/72.png"
+                },
+                "mouth_coordinates": {
+                    "x": 515.1,
+                    "y": 479.7,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 6.4
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/73.png",
+                    "middle": "/assets/poses/74.png",
+                    "shut": "/assets/poses/75.png"
+                },
+                "mouth_coordinates": {
+                    "x": 429.6,
+                    "y": 513.6,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.7
+                }
+            }
+        ],
+        "rhetorical": [
+            {
+                "image_files": {
+                    "open": "/assets/poses/76.png",
+                    "middle": "/assets/poses/77.png",
+                    "shut": "/assets/poses/78.png"
+                },
+                "mouth_coordinates": {
+                    "x": 432.3,
+                    "y": 551.7,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": -14.3
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/79.png",
+                    "middle": "/assets/poses/80.png",
+                    "shut": "/assets/poses/81.png"
+                },
+                "mouth_coordinates": {
+                    "x": 360.0,
+                    "y": 551.4,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 0.7
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/82.png",
+                    "middle": "/assets/poses/83.png",
+                    "shut": "/assets/poses/84.png"
+                },
+                "mouth_coordinates": {
+                    "x": 446.4,
+                    "y": 553.2,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 5.9
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/85.png",
+                    "middle": "/assets/poses/86.png",
+                    "shut": "/assets/poses/87.png"
+                },
+                "mouth_coordinates": {
+                    "x": 552.9,
+                    "y": 471.9,
+                    "scale_x": 1.0,
+                    "scale_y": 1.0,
+                    "flip_x": false,
+                    "rotation": 2.7
+                }
+            },
+            {
+                "image_files": {
+                    "open": "/assets/poses/88.png",
+                    "middle": "/assets/poses/89.png",
+                    "shut": "/assets/poses/90.png"
+                },
+                "mouth_coordinates": {
+                    "x": 375.9,
+                    "y": 537.3,
+                    "scale_x": 0.769,
+                    "scale_y": 0.994,
+                    "flip_x": false,
+                    "rotation": 9.5
+                }
+            }
+        ]
+    }
+}

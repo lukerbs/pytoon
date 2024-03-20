@@ -1,0 +1,25 @@
+{
+    "emotions": {
+        "explain": [],
+        "happy": [],
+        "sad": [],
+        "angry": [],
+        "confused": [],
+        "rhetorical": []
+    },
+    "pose": {
+        "image_files": {
+            "open": "/assets/poses/1.png",
+            "middle": "/assets/poses/2.png",
+            "shut": "/assets/poses/3.png"
+        },
+        "mouth_coordinates": {
+            "x": 0,
+            "y": 0,
+            "scale_x": 1.0,
+            "scale_y": 1.0,
+            "flip_x": false,
+            "rotation": 0.0
+        }
+    }
+}
