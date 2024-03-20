@@ -1,38 +1,30 @@
-import cv2
 import os
 import json
-import numpy as np
+from dataclasses import dataclass
+
 from PIL import Image
+import numpy as np
+import cv2
 
-# Emotions
-# There are 6 emotions
-# 1. Explain 1-15
-# 2. Happy 16-30
-# 3. Sad 31-45
-# 4. Angry 46-60
-# 5. Confused 71-75
-# 6. Rhetorical 76-90
+from .util import read_json
 
-# Poses & Blinking Animation
-# Every emotion has several pose variations
-# Every pose variation has 3 images - Eyes open, eyes halfway shut, eyes closed
-# For every pose variation, you can cycle through the three images up and down to animate blinking
-# There is a total of 30 unique poses, each with images for blink animations
 
-# Phonemes & Visemes
-# 6 Mouth Forms
-# 1.png: Y,I,L
-# 5.png: A,E
-# 7.png: S,T,D,K,G,J, etc.
-# 8.png: F,V
-# 9.png: M,P,B
-# 10.png: W,U,R,O
+@dataclass
+class MouthCoordinates:
+    """Data class for mouth image coordinate and transformation data"""
 
-# Emotion, Pose, and Viseme Scheduling
-# Time (s) mapping to emotion, pose, and visemes in video
+    x: float  # Distance (pxls) from top border of mouth img to top border of pose img.
+    y: float  # Distance (pxls) from left border of mouth img to left border of pose img.
+    scale_x: float  # Multiple by which the image should be scaled along x-axis (width)
+    scale_y: float  # Multiple by which the image should be scaled along y-axis (height)
+    flip_x: bool  # Image should be flipped horizontally (about the center y-axis)
+    rotation: float  # Counter clockwise degrees that the image should be rotated
 
-# Compiling the Video
-# Image is generated for each frame
+
+@dataclass
+class Pose:
+    images: dict  # Dictionary containing paths to variations of the pose image
+    mouth_coordinates: MouthCoordinates  # Mouth coordinates / transformations
 
 
 def animate(images: list[str], video_path: str) -> None:
@@ -91,6 +83,15 @@ def mouth_coordinates():
     # IMPORTANT: will no longer need to do this with new COORDINATES SYSTEM
     coordinates[:, 0:2] *= 3
     return coordinates
+
+
+def poses() -> dict:
+    """Loads pose data from json file and returns as a dictionary.
+
+    Returns:
+        dict: Pose data, including paths to images, emotion specific poses, and mouth coords.
+    """
+    return read_json(file="pose_data.json")
 
 
 def mouth_transformation(mouth_path: str, transformation: np.array) -> Image:
