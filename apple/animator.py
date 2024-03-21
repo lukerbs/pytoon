@@ -1,6 +1,6 @@
 import os
 import json
-
+import random
 
 from PIL import Image
 import numpy as np
@@ -16,7 +16,7 @@ class animate:
 """
 
 
-def animate(images: list[str], mouths: list, fps: int, video_path: str) -> None:
+def animate(images: list[str], mouth_coords: list, fps: int, video_path: str) -> None:
     """Turns a sequence of images into an mp4 video
 
     Args:
@@ -24,6 +24,27 @@ def animate(images: list[str], mouths: list, fps: int, video_path: str) -> None:
         video_path (str): Output .mp4 file path for final video
     """
     images = [f"{os.path.dirname(__file__)}{image}" for image in images]
+    all_mouths = load_mouths()
+    mouth_shapes = []
+    done = False
+    while True:
+        if done:
+            break
+        mouth = random.choice(all_mouths)
+        for _ in range(int(fps * 0.1)):
+            if len(mouth_shapes) >= len(images):
+                done = True
+                break
+            else:
+                mouth_shapes.append(mouth)
+
+    mouth_frames = []
+    for i, _ in enumerate(mouth_shapes):
+
+        im = mouth_transformation(
+            mouth_file=mouth_shapes[i], mouth_coord=mouth_coords[i]
+        )
+        mouth_frames.append(im)
 
     # set frame size
     img = cv2.imread(images[0])
@@ -33,9 +54,13 @@ def animate(images: list[str], mouths: list, fps: int, video_path: str) -> None:
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(video_path, fourcc, fps, frame_size)
 
-    for image in images:
-        frame = cv2.imread(image)
-        out.write(frame)
+    for i, _ in enumerate(images):
+        frame = cv2.imread(images[i])
+        final_frame = render_frame(
+            pose_img=frame, mouth_img=mouth_frames[i], mouth_coord=mouth_coords[i]
+        )
+
+        out.write(final_frame)
     out.release()
     return
 
@@ -77,7 +102,7 @@ def mouth_coordinates():
     return coordinates
 
 
-def mouth_transformation(mouth_path: str, transformation: np.array) -> Image:
+def mouth_transformation(mouth_file, mouth_coord) -> Image:
     """Transforms mouth image with scaling, flipping, and rotation.
         This transformation is applied because, the same mouth shape images
         are used for different pose images, but the size, angle, and position
@@ -90,34 +115,40 @@ def mouth_transformation(mouth_path: str, transformation: np.array) -> Image:
     Returns:
         Image: PIL Image object of mouth image with applied transformations
     """
-    mouth = Image.open(mouth_path)
+    mouth = Image.open(mouth_file)
     # Flip mouth horizontally if necessary
-    if transformation[2] == -1:
+    if mouth_coord.flip_x is True:
         mouth = mouth.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     # Scale mouth image if necessary
-    if transformation[3] != 1:
+    if mouth_coord.scale_y != 1:
         og_width, og_height = mouth.size
-        new_width = int(abs(og_width * transformation[2]))
-        new_height = int(og_height * transformation[3])
-        mouth = mouth.resize(new_width, new_height, Image.Resampling.LANCZOS)
+        new_width = int(abs(og_width * mouth_coord.scale_x))
+        new_height = int(og_height * mouth_coord.scale_y)
+        try:
+            mouth = mouth.resize(new_width, new_height, Image.Resampling.LANCZOS)
+        except:
+            pass
     # Apply image rotation if necessary
-    if transformation[4] != 0:
-        mouth = mouth.rotate(-transformation[4], resample=Image.Resampling.BICUBIC)
+    if mouth_coord.rotation != 0:
+        mouth = mouth.rotate(-mouth_coord.rotation, resample=Image.Resampling.BICUBIC)
     return mouth
 
 
-def render_frame(pose_img: Image, mouth_img: Image, transformation: np.array):
+def render_frame(pose_img: Image, mouth_img: Image, mouth_coord):
+    pose_img = Image.fromarray(pose_img)
     mouth_width, mouth_height = mouth_img.size
-    print(f"Mouth Shape: {mouth_img.size}")
 
     # Location in pose image where mouth / viseme image will be added
     paste_coordinates = (
-        int(transformation[0] - (mouth_width / 2)),
-        int(transformation[1] - (mouth_height / 2)),
+        int(mouth_coord.x - (mouth_width / 2)),
+        int(mouth_coord.y - (mouth_height / 2)),
     )
-    print(f"Mouth Coords: {paste_coordinates}")
 
     # Paste the mouth image onto the face image at the specified coordinates
-    print(f"Pose Size: {pose_img.size}")
     pose_img.paste(im=mouth_img, box=paste_coordinates, mask=mouth_img)
-    return pose_img
+    np_image = np.array(pose_img)
+
+    # Convert BGR PIL image to RGB (if necessary)
+    if np_image.shape[2] == 3:
+        np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
+    return np_image
