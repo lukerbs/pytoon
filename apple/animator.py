@@ -1,45 +1,37 @@
 import os
 import json
-from dataclasses import dataclass
+
 
 from PIL import Image
 import numpy as np
 import cv2
 
 from .util import read_json
+from .dataloader import poses
+
+"""
+class animate:
+    def __init__(self, audio_file: str, transcript: str):
+        self.emotions = poses()
+"""
 
 
-@dataclass
-class MouthCoordinates:
-    """Data class for mouth image coordinate and transformation data"""
-
-    x: float  # Distance (pxls) from top border of mouth img to top border of pose img.
-    y: float  # Distance (pxls) from left border of mouth img to left border of pose img.
-    scale_x: float  # Multiple by which the image should be scaled along x-axis (width)
-    scale_y: float  # Multiple by which the image should be scaled along y-axis (height)
-    flip_x: bool  # Image should be flipped horizontally (about the center y-axis)
-    rotation: float  # Counter clockwise degrees that the image should be rotated
-
-
-@dataclass
-class Pose:
-    images: dict  # Dictionary containing paths to variations of the pose image
-    mouth_coordinates: MouthCoordinates  # Mouth coordinates / transformations
-
-
-def animate(images: list[str], video_path: str) -> None:
+def animate(images: list[str], mouths: list, fps: int, video_path: str) -> None:
     """Turns a sequence of images into an mp4 video
 
     Args:
         photos (list[str]): List of paths to image files, in sequential order
         video_path (str): Output .mp4 file path for final video
     """
+    images = [f"{os.path.dirname(__file__)}{image}" for image in images]
+
+    # set frame size
     img = cv2.imread(images[0])
     height, width, _ = img.shape
 
     frame_size = (width, height)
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    out = cv2.VideoWriter(video_path, fourcc, 24.0, frame_size)
+    out = cv2.VideoWriter(video_path, fourcc, fps, frame_size)
 
     for image in images:
         frame = cv2.imread(image)
@@ -83,15 +75,6 @@ def mouth_coordinates():
     # IMPORTANT: will no longer need to do this with new COORDINATES SYSTEM
     coordinates[:, 0:2] *= 3
     return coordinates
-
-
-def poses() -> dict:
-    """Loads pose data from json file and returns as a dictionary.
-
-    Returns:
-        dict: Pose data, including paths to images, emotion specific poses, and mouth coords.
-    """
-    return read_json(file="pose_data.json")
 
 
 def mouth_transformation(mouth_path: str, transformation: np.array) -> Image:
