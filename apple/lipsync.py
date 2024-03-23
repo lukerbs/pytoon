@@ -2,7 +2,12 @@ from forcealign import ForceAlign
 from .util import read_json
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Union
 
+FPS = 24
+# Viseme image for silence (i.e. closed mouth, not speaking)
+SILENT_VISEME = "9.png"
+SILENT_PHONEME = "PAUSE"
 # ARPAbet phonemes to simplified phonemes mapping
 PHONEMES = read_json("phonemes.json")
 # Simplified phonemes to viseme-sequence mapping
@@ -11,6 +16,7 @@ VISEMES = read_json("visemes.json")
 
 @dataclass
 class WordViseme:
+    word: Union[str, None]  # Word associated with viseme
     visemes: list[str]  # List of mouth shape images for viseme
     phonemes: list[str]  # The phoneme associated with the viseme
     time_start: datetime  # The time the word starts (seconds)
@@ -96,7 +102,6 @@ def generate_viseme_frames(sequence: list, total_frames: int) -> list:
         ]
         viseme_frames = viseme_frames[:total_frames]
 
-    print(f"Wanted: {total_frames}; Created: {len(viseme_frames)}")
     return viseme_frames
 
 
@@ -117,7 +122,6 @@ def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
     words = aligner.inference()
 
     viseme_sequence = []
-    FPS = 24
     for word in words:
         phonemes = [phoneme_no_stress(phoneme) for phoneme in word.phonemes]
         images = [phoneme_to_viseme(phoneme=phoneme) for phoneme in phonemes]
@@ -132,6 +136,7 @@ def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
 
         viseme_sequence.append(
             WordViseme(
+                word=word.word,
                 visemes=visemes,
                 phonemes=phonemes,
                 time_start=word.time_start,
@@ -140,4 +145,44 @@ def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
                 total_frames=total_frames,
             )
         )
-    return viseme_sequence
+
+    # Add silence viseme (closed mouth) between speaking visemes
+    finished_sequence = []
+    for i, _ in enumerate(viseme_sequence):
+        finished_sequence.append(viseme_sequence[i])
+        if i == len(viseme_sequence) - 1:
+            break
+
+        silent_viseme = get_silent_viseme(viseme_sequence[i], viseme_sequence[i + 1])
+        if silent_viseme:
+            finished_sequence.append(silent_viseme)
+
+    return finished_sequence
+
+
+def get_silent_viseme(current_viseme, next_viseme, fps=FPS):
+    # The time the silent viseme should start after previous viseme (i.e. the next frame)
+    delta = 1 / fps
+
+    # Get start time, end time, and total duration of silence
+    silence_start = current_viseme.time_end + delta
+    silence_end = next_viseme.time_start - delta
+    duration = silence_end - silence_start
+
+    # Get number of frames for silence segment (24 frames per second of silence)
+    total_frames = int(fps * duration)
+    if total_frames <= 0:
+        return None
+
+    # Create frames for silence
+    silent_visemes = [SILENT_VISEME for _ in range(total_frames)]
+    phonemes = [SILENT_PHONEME for _ in range(total_frames)]
+    return WordViseme(
+        word=None,
+        visemes=silent_visemes,
+        phonemes=phonemes,
+        time_start=silence_start,
+        time_end=silence_end,
+        duration=duration,
+        total_frames=total_frames,
+    )
