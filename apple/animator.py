@@ -8,6 +8,7 @@ import cv2
 
 from .util import read_json
 from .dataloader import get_assets
+from .lipsync import viseme_sequencer
 
 
 class FrameSequence:
@@ -23,7 +24,7 @@ class FrameSequence:
 class animate:
     """Animates a cartoon that is lip synced to provieded audio voiceover."""
 
-    def __init__(self, duration: float, video_path: str):
+    def __init__(self, audio_file: str, txt_file: str, video_path: str):
         self.duration = duration
         self.video_path = video_path
 
@@ -37,7 +38,16 @@ class animate:
             f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files
         ]
 
+        self.viseme_sequence = viseme_sequencer(audio_file, txt_file)
+
         self.build_mouth_sequence()
+        # Create path to mouth images
+        for i, _ in enumerate(self.sequence.mouth_files):
+            if self.sequence.mouth_files[i] is not None:
+                file = self.sequence.mouth_files[i]
+                new_file = f"{os.path.dirname(__file__)}/assets/visemes/positive/{file}"
+                self.sequence.mouth_files[i] = new_file
+
         self.frame_size = self.get_frame_size()
         self.compile_animation()
 
@@ -115,25 +125,20 @@ class animate:
 
     def build_mouth_sequence(self):
         """Generates a sequence of mouth images for video"""
-        done = False
-        idx = 0
-        while True:
-            if done:
-                break
-            mouth_file = random.choice(self.mouth_files)
-            for _ in range(int(self.fps * 0.15)):
-                if len(self.sequence.mouth_files) >= len(self.sequence.pose_files):
-                    done = True
-                    break
-                else:
-                    # Generate mouth image paths and transformed images
-                    self.sequence.mouth_files.append(mouth_file)
-                    transformed_image = mouth_transformation(
-                        mouth_file=mouth_file,
-                        mouth_coord=self.sequence.mouth_coords[idx],
-                    )
-                    self.sequence.mouth_images.append(transformed_image)
-                    idx += 1
+
+        last_idx = 0
+        for i, _ in enumerate(self.viseme_sequence):
+            # index of frame within video where viseme should be added
+            start_idx = int(self.fps * self.viseme_sequence[i].time_start)
+
+            # Add None to sequence in previous positions where there are no visemes
+            if start_idx != last_idx:
+                idx_jump = start_idx - last_idx
+                self.sequence.mouth_files.extend([None for _ in range(idx_jump)])
+
+            # Add visemes images to sequence
+            self.sequence.mouth_files.extend(self.viseme_sequence[i].visemes)
+            last_idx += len(self.viseme_sequence[i].visemes)
 
     def random_emotion(self):
         """Generates a random emotion to use in sequence
@@ -156,12 +161,14 @@ class animate:
 
         for i, _ in enumerate(self.sequence.pose_files):
             frame = cv2.imread(self.sequence.pose_files[i])
-            final_frame = render_frame(
-                pose_img=frame,
-                mouth_img=self.sequence.mouth_images[i],
-                mouth_coord=self.sequence.mouth_coords[i],
-            )
-
+            if self.sequence.mouth_files[i] is not None:
+                final_frame = render_frame(
+                    pose_img=frame,
+                    mouth_img=self.sequence.mouth_images[i],
+                    mouth_coord=self.sequence.mouth_coords[i],
+                )
+            else:
+                final_frame = frame
             video.write(final_frame)
         video.release()
 
