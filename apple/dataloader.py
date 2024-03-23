@@ -35,7 +35,7 @@ class Emotions:
     rhetorical: list[Pose]  # List of poses for the sad emotion.
 
 
-def poses() -> Emotions:
+def get_assets() -> Emotions:
     """Loads pose data from json file and returns as a dictionary.
 
     Returns:
@@ -54,6 +54,5 @@ def poses() -> Emotions:
                 "mouth_coordinates": MouthCoordinates(**coords),
             }
             poses.append(Pose(**pose))
-
         emotions[emotion] = poses
     return Emotions(**emotions)

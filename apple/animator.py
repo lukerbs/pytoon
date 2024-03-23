@@ -7,99 +7,175 @@ import numpy as np
 import cv2
 
 from .util import read_json
-from .dataloader import poses
+from .dataloader import get_assets
 
-"""
+
+class FrameSequence:
+    def __init__(self):
+        self.pose_files = []
+        self.mouth_files = []
+        self.pose_images = []
+        self.mouth_images = []
+        self.mouth_coords = []
+        self.final_frames = []
+
+
 class animate:
-    def __init__(self, audio_file: str, transcript: str):
-        self.emotions = poses()
-"""
+    """Animates a cartoon that is lip synced to provieded audio voiceover."""
 
+    def __init__(self, duration: float, video_path: str):
+        self.duration = duration
+        self.video_path = video_path
 
-def animate(images: list[str], mouth_coords: list, fps: int, video_path: str) -> None:
-    """Turns a sequence of images into an mp4 video
+        self.assets = get_assets()
+        self.mouth_files = load_mouth_files()
+        self.sequence = FrameSequence()
+        self.fps = 24
 
-    Args:
-        photos (list[str]): List of paths to image files, in sequential order
-        video_path (str): Output .mp4 file path for final video
-    """
-    images = [f"{os.path.dirname(__file__)}{image}" for image in images]
-    all_mouths = load_mouths()
-    mouth_shapes = []
-    done = False
-    while True:
-        if done:
-            break
-        mouth = random.choice(all_mouths)
-        for _ in range(int(fps * 0.1)):
-            if len(mouth_shapes) >= len(images):
-                done = True
+        self.build_pose_sequence()
+        self.sequence.pose_files = [
+            f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files
+        ]
+        print(f"Pose files loaded: {len(self.sequence.pose_files)}")
+
+        self.build_mouth_sequence()
+        print(f"Mouth files loaded: {len(self.sequence.mouth_files)}")
+        print(self.sequence.mouth_files[:3])
+        self.frame_size = self.get_frame_size()
+        self.compile_animation()
+
+    def build_pose_sequence(self):
+        """Creates the sequence of pose images for the video"""
+        seconds_per_pose = 6
+
+        emotion = self.random_emotion()
+        pose = random.choice(emotion)
+        pose_seconds = 0
+        total_seconds = 0
+        while True:
+            if pose_seconds >= seconds_per_pose:
+                emotion = self.random_emotion()
+                pose = random.choice(emotion)
+                pose_seconds = 0
+
+            # Add to image file sequence
+            pose_files = [pose.image_files["open"] for _ in range(self.fps)]
+            mouth_coords = [pose.mouth_coordinates for _ in range(self.fps)]
+            self.sequence.pose_files.extend(pose_files)
+            self.sequence.mouth_coords.extend(mouth_coords)
+            pose_seconds += 1
+            total_seconds += 1
+
+            # Generate blink animation frames every 2 seconds
+            if pose_seconds % 2 == 0 and pose_seconds > 0:
+                num_blink_frames = self.blink(pose=pose)
+                pose_seconds += num_blink_frames / self.fps
+                total_seconds += num_blink_frames / self.fps
+
+            # End if total video duration has been met
+            if total_seconds >= self.duration:
                 break
-            else:
-                mouth_shapes.append(mouth)
+        return
 
-    mouth_frames = []
-    for i, _ in enumerate(mouth_shapes):
+    def blink(self, pose):
+        """Generates an animation sequence for eye blinking in a specific pose
 
-        im = mouth_transformation(
-            mouth_file=mouth_shapes[i], mouth_coord=mouth_coords[i]
-        )
-        mouth_frames.append(im)
+        Args:
+            pose (Pose): A Pose object containing pose configuration data
 
-    # set frame size
-    img = cv2.imread(images[0])
-    height, width, _ = img.shape
+        Returns:
+            int: Returns the number of frames that were generated for talling total generated
+        """
+        frames = []
+        blink_duration = 0.4
+        subsequence_duration = blink_duration / 5
+        num_frames = int(self.fps * subsequence_duration)
 
-    frame_size = (width, height)
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    out = cv2.VideoWriter(video_path, fourcc, fps, frame_size)
+        open_frames = [pose.image_files["open"] for _ in range(num_frames)]
+        mid_frames = [pose.image_files["middle"] for _ in range(num_frames)]
+        shut_frames = [pose.image_files["shut"] for _ in range(num_frames)]
+        open_wait = [pose.image_files["open"] for _ in range(int(self.fps * 1.5))]
 
-    for i, _ in enumerate(images):
-        frame = cv2.imread(images[i])
-        final_frame = render_frame(
-            pose_img=frame, mouth_img=mouth_frames[i], mouth_coord=mouth_coords[i]
-        )
+        num_blinks = 1
+        if random.random() < 0.3:
+            num_blinks = 2
 
-        out.write(final_frame)
-    out.release()
-    return
+        for _ in range(num_blinks):
+            frames.extend(open_frames)
+            frames.extend(mid_frames)
+            frames.extend(shut_frames)
+            frames.extend(mid_frames)
+            frames.extend(open_frames)
+            if num_blinks > 1:
+                frames.extend(open_wait)
+
+        self.sequence.pose_files.extend(frames)
+
+        mouth_coords = [pose.mouth_coordinates for _ in range(len(frames))]
+        self.sequence.mouth_coords.extend(mouth_coords)
+
+        return len(frames)
+
+    def build_mouth_sequence(self):
+        """Generates a sequence of mouth images for video"""
+        done = False
+        idx = 0
+        while True:
+            if done:
+                break
+            mouth_file = random.choice(self.mouth_files)
+            for _ in range(int(self.fps * 0.3)):
+                if len(self.sequence.mouth_files) >= len(self.sequence.pose_files):
+                    done = True
+                    break
+                else:
+                    # Generate mouth image paths and transformed images
+                    self.sequence.mouth_files.append(mouth_file)
+                    transformed_image = mouth_transformation(
+                        mouth_file=mouth_file,
+                        mouth_coord=self.sequence.mouth_coords[idx],
+                    )
+                    self.sequence.mouth_images.append(transformed_image)
+                    idx += 1
+
+    def random_emotion(self):
+        """Generates a random emotion to use in sequence
+
+        Returns:
+            list[Pose]: List of poses from a random emotion
+        """
+        emotions_list = list(self.assets.__dict__.keys())
+        emotion = random.choice(emotions_list)
+        return getattr(self.assets, emotion)
+
+    def get_frame_size(self):
+        pose_image = cv2.imread(self.sequence.pose_files[0])
+        height, width, _ = pose_image.shape
+        return (height, width)
+
+    def compile_animation(self):
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        video = cv2.VideoWriter(self.video_path, fourcc, self.fps, self.frame_size)
+
+        for i, _ in enumerate(self.sequence.pose_files):
+            frame = cv2.imread(self.sequence.pose_files[i])
+            final_frame = render_frame(
+                pose_img=frame,
+                mouth_img=self.sequence.mouth_images[i],
+                mouth_coord=self.sequence.mouth_coords[i],
+            )
+
+            video.write(final_frame)
+        video.release()
 
 
-def load_poses():
-    """Loads image file paths to pose images"""
-    path = f"{os.path.dirname(__file__)}/assets/poses"
-    files = os.listdir(path)
-    files.sort(key=lambda x: int(x.split(".")[0]))
-    files = [os.path.join(path, file) for file in files]
-    return files
-
-
-def load_mouths():
+def load_mouth_files():
     """Loads image file paths to mouth images"""
     path = f"{os.path.dirname(__file__)}/assets/mouths"
     files = os.listdir(path)
     files.sort(key=lambda x: int(x.split(".")[0]))
     files = [os.path.join(path, file) for file in files]
     return files
-
-
-def mouth_coordinates():
-    """
-    0: Width
-    1: Height
-    2: Flip Horizontal
-    3: Resize
-    4: Rotate
-    """
-    path = f"{os.path.dirname(__file__)}/assets/mouth_coordinates.json"
-    with open(path, "r") as file:
-        data = json.load(file)
-        coordinates = data["coordinates"]
-
-    coordinates = np.array(coordinates)
-    # IMPORTANT: will no longer need to do this with new COORDINATES SYSTEM
-    coordinates[:, 0:2] *= 3
-    return coordinates
 
 
 def mouth_transformation(mouth_file, mouth_coord) -> Image:
