@@ -10,12 +10,13 @@ VISEMES = read_json("visemes.json")
 
 
 @dataclass
-class Viseme:
-    viseme: list[str]  # List of mouth shape images for viseme
-    phoneme: str  # The phoneme associated with the viseme
-    time_start: datetime  # The time the viseme starts (seconds)
-    time_end: datetime  # The time the viseme ends (seconds)
-    duration: float  # total viseme duration from start to end (seconds)
+class WordViseme:
+    visemes: list[str]  # List of mouth shape images for viseme
+    phonemes: list[str]  # The phoneme associated with the viseme
+    time_start: datetime  # The time the word starts (seconds)
+    time_end: datetime  # The time the word ends (seconds)
+    duration: float  # total word duration from start to end (seconds)
+    total_frames: int  # total number of frames in video for word
 
 
 def phoneme_no_stress(phoneme: str) -> str:
@@ -48,7 +49,58 @@ def phoneme_to_viseme(phoneme: str) -> list[str]:
     return viseme
 
 
-def viseme_sequencer(audio_file: str, txt_file: str) -> list[Viseme]:
+def generate_viseme_frames(sequence: list, total_frames: int) -> list:
+    """Generates the complete viseme frame sequence for word viseme
+
+    Args:
+        sequence (list): List of visemes in word
+        total_frames (int): Total frames allocated to full word
+
+    Returns:
+        list: Completed viseme video sequence of images for word
+    """
+    if total_frames <= 0:
+        raise Exception("total_frames must be an integer greater than 0.")
+
+    frames_per_subviseme = total_frames // len(sequence)
+    remainder_end = total_frames % len(sequence)
+    if frames_per_subviseme == 0:
+        frames_per_subviseme = 1
+
+    viseme_frames = []
+    for i, _ in enumerate(sequence):
+        sub_sequence = sequence[i]
+        if len(sub_sequence) > frames_per_subviseme:
+            viseme_frames.extend(sub_sequence[:frames_per_subviseme])
+        elif len(sub_sequence) < frames_per_subviseme:
+            multiple = frames_per_subviseme // len(sequence)
+            remainder = frames_per_subviseme % len(sequence)
+            for _ in range(multiple):
+                viseme_frames.extend(sub_sequence)
+            last_frame = sub_sequence[-1]
+            for _ in range(remainder):
+                viseme_frames.append(last_frame)
+        else:
+            viseme_frames.extend(sub_sequence)
+
+    if remainder_end:
+        last_frame = viseme_frames[-1]
+        for _ in range(remainder_end):
+            viseme_frames.append(last_frame)
+    if len(viseme_frames) > total_frames:
+        remove_n = len(viseme_frames) // total_frames
+        viseme_frames = [
+            viseme_frames[i]
+            for i in range(len(viseme_frames))
+            if (i + 1) % remove_n != 0
+        ]
+        viseme_frames = viseme_frames[:total_frames]
+
+    print(f"Wanted: {total_frames}; Created: {len(viseme_frames)}")
+    return viseme_frames
+
+
+def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
     """Converts and audio / txt file to force aligned viseme sequence
 
     Args:
@@ -56,27 +108,36 @@ def viseme_sequencer(audio_file: str, txt_file: str) -> list[Viseme]:
         txt_file (str): Path to txt file trascript of audio recording
 
     Returns:
-        list[Viseme]: A list of force aligned Viseme objects
+        list[WordViseme]: A list of force aligned WordViseme objects
     """
     # Provide path to audio_file and corresponding txt_file with audio transcript
     aligner = ForceAlign(audio_file=audio_file, txt_file=txt_file)
 
     # Runs forced alignment algorithm and returns alignment results
-    aligner.inference()
-    phonemes = aligner.phoneme_alignments
+    words = aligner.inference()
 
-    # Convert phonemes to visime sequence
     viseme_sequence = []
-    for phoneme in phonemes:
-        viseme = phoneme_to_viseme(phoneme=phoneme.phoneme)
-        duration = round((phoneme.time_end - phoneme.time_start), 10)
+    FPS = 24
+    for word in words:
+        phonemes = [phoneme_no_stress(phoneme) for phoneme in word.phonemes]
+        images = [phoneme_to_viseme(phoneme=phoneme) for phoneme in phonemes]
+        duration = word.time_end - word.time_start
+        total_frames = int(duration * FPS)
+        if total_frames:
+            visemes = generate_viseme_frames(sequence=images, total_frames=total_frames)
+            total_frames = len(visemes)
+        else:
+            visemes = None
+            total_frames = None
+
         viseme_sequence.append(
-            Viseme(
-                viseme=viseme,
-                phoneme=phoneme_no_stress(phoneme.phoneme),
-                time_start=phoneme.time_start,
-                time_end=phoneme.time_end,
+            WordViseme(
+                visemes=visemes,
+                phonemes=phonemes,
+                time_start=word.time_start,
+                time_end=word.time_end,
                 duration=duration,
+                total_frames=total_frames,
             )
         )
     return viseme_sequence
