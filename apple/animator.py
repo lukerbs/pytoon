@@ -36,11 +36,8 @@ class animate:
         self.sequence.pose_files = [
             f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files
         ]
-        print(f"Pose files loaded: {len(self.sequence.pose_files)}")
 
         self.build_mouth_sequence()
-        print(f"Mouth files loaded: {len(self.sequence.mouth_files)}")
-        print(self.sequence.mouth_files[:3])
         self.frame_size = self.get_frame_size()
         self.compile_animation()
 
@@ -124,7 +121,7 @@ class animate:
             if done:
                 break
             mouth_file = random.choice(self.mouth_files)
-            for _ in range(int(self.fps * 0.3)):
+            for _ in range(int(self.fps * 0.15)):
                 if len(self.sequence.mouth_files) >= len(self.sequence.pose_files):
                     done = True
                     break
@@ -151,7 +148,7 @@ class animate:
     def get_frame_size(self):
         pose_image = cv2.imread(self.sequence.pose_files[0])
         height, width, _ = pose_image.shape
-        return (height, width)
+        return (width, height)
 
     def compile_animation(self):
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
