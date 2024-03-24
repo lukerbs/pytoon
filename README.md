@@ -23,3 +23,8 @@ There are 6 emotions
 8.png: F,V
 9.png: M,P,B
 10.png: W,U,R,O
+
+
+# ! Todo !
+# Use viseme sequence to determine number of frames needed to be generated for video 
+# Use number of frames for vidoe to generate pose frames

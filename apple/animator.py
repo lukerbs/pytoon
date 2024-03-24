@@ -25,57 +25,74 @@ class animate:
     """Animates a cartoon that is lip synced to provieded audio voiceover."""
 
     def __init__(self, audio_file: str, txt_file: str, video_path: str):
-        self.viseme_sequence = viseme_sequencer(audio_file, txt_file)
-        print(self.viseme_sequence)
-
-        self.duration = self.viseme_sequence[-1].time_end
-        self.video_path = video_path
-
-        self.assets = get_assets()
-        self.mouth_files = []  # load_mouth_files()
         self.sequence = FrameSequence()
+        self.video_path = video_path
+        self.assets = get_assets()
         self.fps = 24
 
-        self.build_pose_sequence()
-        self.sequence.pose_files = [
-            f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files
-        ]
-
-        number_pose = len(self.sequence.pose_files)
-        print(f"Len Poses: {number_pose}")
-
+        # Create sequence of mouth images
+        self.viseme_sequence = viseme_sequencer(audio_file, txt_file)
         self.build_mouth_sequence()
-        # Create path to mouth images
+        self.build_pose_sequence()
+
+        print(f"Len Mouths: {len(self.sequence.mouth_files)}")
+        print(f"Len Poses: {len(self.sequence.pose_files)}")
+        print(f"Len Mouths: {len(self.sequence.pose_files)}")
 
         self.frame_size = self.get_frame_size()
+        # Create the animation
         self.compile_animation()
 
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
         seconds_per_pose = 6
 
+        frame_count = 0
+        blink_count = 0
         emotion = self.random_emotion()
         pose = random.choice(emotion)
-        for i, _ in enumerate(self.viseme_sequence):
-            if i % (seconds_per_pose * self.fps) == 0:
+        # Add a character pose frame for every frame of a mouth
+        while len(self.sequence.pose_files) <= len(self.sequence.mouth_files):
+            added_frames = len(self.sequence.pose_files) - frame_count
+            if added_frames > seconds_per_pose * self.fps:
+                # Change pose if 6 seconds has passed
                 emotion = self.random_emotion()
                 pose = random.choice(emotion)
+                frame_count = len(self.sequence.pose_files)
 
-            # Add to image file sequence
+            # Add 1 second worth of pose files to pose frames sequencs
             pose_files = [pose.image_files["open"] for _ in range(self.fps)]
             mouth_coords = [pose.mouth_coordinates for _ in range(self.fps)]
             self.sequence.pose_files.extend(pose_files)
             self.sequence.mouth_coords.extend(mouth_coords)
 
-            # Generate blink animation frames every 2 seconds
-            if pose_seconds % 2 == 0 and pose_seconds > 0:
-                num_blink_frames = self.blink(pose=pose)
-                pose_seconds += num_blink_frames / self.fps
-                total_seconds += num_blink_frames / self.fps
+            # Character should blink every 2 seconds
+            frames_since_blink = len(self.sequence.pose_files) - blink_count
+            if frames_since_blink > 2 * self.fps:
+                self.blink(pose=pose)
 
-            # End if total video duration has been met
-            if total_seconds >= self.duration:
+            # Shorten list of poses if too many were made
+            if len(self.sequence.pose_files) > len(self.sequence.mouth_files):
+                self.sequence.pose_files = self.sequence.pose_files[
+                    : len(self.sequence.mouth_files)
+                ]
+                self.sequence.mouth_coords = self.sequence.mouth_coords[
+                    : len(self.sequence.mouth_files)
+                ]
                 break
+
+        # Prepend absolute path to all pose images
+        self.sequence.pose_files = [
+            f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files
+        ]
+
+        # Create mouth PIL image for every frame, with image transformations based on pose
+        for i, _ in enumerate(self.sequence.mouth_files):
+            transformed_image = mouth_transformation(
+                mouth_file=self.sequence.mouth_files[i],
+                mouth_coord=self.sequence.mouth_coords[i],
+            )
+            self.sequence.mouth_images.append(transformed_image)
         return
 
     def blink(self, pose):
@@ -112,42 +129,16 @@ class animate:
 
     def build_mouth_sequence(self):
         """Generates a sequence of mouth images for video"""
-
-        last_idx = 0
-        for i, _ in len(self.viseme_sequence):
-            # index of frame within video where viseme should be added
-            start_idx = int(self.fps * self.viseme_sequence[i].time_start)
-
-            # Add None to sequence in previous positions where there are no visemes
-            if start_idx != last_idx:
-                idx_jump = start_idx - last_idx
-                self.sequence.mouth_files.extend([None for _ in range(idx_jump)])
-
-            # Add visemes images to sequence
+        # Add mouth images to mouth image file sequence
+        for i, _ in enumerate(self.viseme_sequence):
             if self.viseme_sequence[i].visemes:
                 self.sequence.mouth_files.extend(self.viseme_sequence[i].visemes)
-            else:
-                continue
-            last_idx += len(self.viseme_sequence[i].visemes)
 
-        mth_fls = len(self.sequence.mouth_files)
-        print(f"Mouth Files: {mth_fls}")
+        # Prepend absolute path to mouth images
         for i, _ in enumerate(self.sequence.mouth_files):
-            if self.sequence.mouth_files[i] is not None:
-                file = self.sequence.mouth_files[i]
-                new_file = f"{os.path.dirname(__file__)}/assets/visemes/positive/{file}"
-                self.sequence.mouth_files[i] = new_file
-
-        for i, _ in enumerate(self.sequence.mouth_files):
-            # Create transformed mouth image to fit pose
-            if self.sequence.mouth_files[i] is not None:
-                transformed_image = mouth_transformation(
-                    mouth_file=self.sequence.mouth_files[i],
-                    mouth_coord=self.sequence.mouth_coords[i],
-                )
-                self.sequence.mouth_images.append(transformed_image)
-            else:
-                self.sequence.mouth_images.append(None)
+            file = self.sequence.mouth_files[i]
+            new_file = f"{os.path.dirname(__file__)}/assets/visemes/positive/{file}"
+            self.sequence.mouth_files[i] = new_file
 
     def random_emotion(self):
         """Generates a random emotion to use in sequence
@@ -180,15 +171,6 @@ class animate:
                 final_frame = frame
             video.write(final_frame)
         video.release()
-
-
-def load_mouth_files():
-    """Loads image file paths to mouth images"""
-    path = f"{os.path.dirname(__file__)}/assets/mouths"
-    files = os.listdir(path)
-    files.sort(key=lambda x: int(x.split(".")[0]))
-    files = [os.path.join(path, file) for file in files]
-    return files
 
 
 def mouth_transformation(mouth_file, mouth_coord) -> Image:
