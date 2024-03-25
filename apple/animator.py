@@ -33,11 +33,12 @@ class animate:
         # Create sequence of mouth images
         self.viseme_sequence = viseme_sequencer(audio_file, txt_file)
         self.build_mouth_sequence()
-        self.build_pose_sequence()
 
-        print(f"Len Mouths: {len(self.sequence.mouth_files)}")
-        print(f"Len Poses: {len(self.sequence.pose_files)}")
-        print(f"Len Mouths: {len(self.sequence.pose_files)}")
+        time_t = len(self.sequence.mouth_files) / 24
+        print(f"Num Created: {len(self.sequence.mouth_files)}")
+        print(f"Duration: {time_t}")
+
+        self.build_pose_sequence()
 
         self.frame_size = self.get_frame_size()
         # Create the animation
@@ -46,6 +47,7 @@ class animate:
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
         seconds_per_pose = 6
+        seconds_per_blink = 3
 
         frame_count = 0
         blink_count = 0
@@ -66,10 +68,12 @@ class animate:
             self.sequence.pose_files.extend(pose_files)
             self.sequence.mouth_coords.extend(mouth_coords)
 
-            # Character should blink every 2 seconds
+            # Character should blink every x seconds
             frames_since_blink = len(self.sequence.pose_files) - blink_count
-            if frames_since_blink > 2 * self.fps:
+            if frames_since_blink > seconds_per_blink * self.fps:
                 self.blink(pose=pose)
+                blink_count = len(self.sequence.pose_files)
+                seconds_per_blink = random.randint(2, 6)
 
             # Shorten list of poses if too many were made
             if len(self.sequence.pose_files) > len(self.sequence.mouth_files):

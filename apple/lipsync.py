@@ -3,6 +3,7 @@ from .util import read_json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Union
+import random
 
 FPS = 24
 # Viseme image for silence (i.e. closed mouth, not speaking)
@@ -23,6 +24,122 @@ class WordViseme:
     time_end: datetime  # The time the word ends (seconds)
     duration: float  # total word duration from start to end (seconds)
     total_frames: int  # total number of frames in video for word
+
+
+def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
+    """Converts and audio / txt file to force aligned viseme sequence
+
+    Args:
+        audio_file (str): Path to audio file of a person speaking english (.wav or .mp3)
+        txt_file (str): Path to txt file trascript of audio recording
+
+    Returns:
+        list[WordViseme]: A list of force aligned WordViseme objects
+    """
+    # Provide path to audio_file and corresponding txt_file with audio transcript
+    aligner = ForceAlign(audio_file=audio_file, txt_file=txt_file)
+
+    # Runs forced alignment algorithm and returns alignment results
+    words = aligner.inference()
+
+    first_word = words[0]
+    print(f"Time Start: {first_word.time_start}")
+    last_word = words[-1]
+    total_duration = last_word.time_end
+    target_frames = int(total_duration * 24)
+    print(f"Target Duration: {total_duration}")
+    print(f"Target Frames: {target_frames}")
+
+    viseme_sequence = []
+    for word in words:
+        phonemes = [phoneme_no_stress(phoneme) for phoneme in word.phonemes]
+        images = [phoneme_to_viseme(phoneme=phoneme) for phoneme in phonemes]
+        duration = word.time_end - word.time_start
+        total_frames = int((duration / total_duration) * target_frames)
+        if total_frames == 0 and random.choice([True, False]):
+            total_frames = 1
+        elif random.choice([True, False]):
+            total_frames += 1
+
+        # If viseme is more than one frame long
+        visemes = generate_viseme_frames(sequence=images, total_frames=total_frames)
+        total_frames = len(visemes)
+
+        viseme_sequence.append(
+            WordViseme(
+                word=word.word,
+                visemes=visemes,
+                phonemes=phonemes,
+                time_start=word.time_start,
+                time_end=word.time_end,
+                duration=duration,
+                total_frames=total_frames,
+            )
+        )
+
+    # Add silence viseme (closed mouth) between speaking visemes
+    finished_sequence = []
+    for i, _ in enumerate(viseme_sequence):
+        finished_sequence.append(viseme_sequence[i])
+        if i == len(viseme_sequence) - 1:
+            break
+
+        silent_viseme = get_silent_viseme(
+            viseme_sequence[i], viseme_sequence[i + 1], total_duration, target_frames
+        )
+        if silent_viseme:
+            finished_sequence.append(silent_viseme)
+
+    return finished_sequence
+
+
+def generate_viseme_frames(sequence: list, total_frames: int) -> list:
+    """Generates the complete viseme frame sequence for word viseme
+
+    Args:
+        sequence (list): List of visemes in word
+        total_frames (int): Total frames allocated to full word
+
+    Returns:
+        list: Completed viseme video sequence of images for word
+    """
+    frames_per_subviseme = total_frames // len(sequence)
+    remainder_end = total_frames % len(sequence)
+    if frames_per_subviseme == 0:
+        if random.choice([True, False]):
+            frames_per_subviseme = 1
+        else:
+            return []
+
+    viseme_frames = []
+    for i, _ in enumerate(sequence):
+        if len(sequence[i]) > frames_per_subviseme:
+            viseme_frames.extend(sequence[i][:frames_per_subviseme])
+        elif len(sequence[i]) < frames_per_subviseme:
+            seq = upsample(sequence[i], frames_per_subviseme)
+            viseme_frames.extend(seq)
+        else:
+            viseme_frames.extend(sequence[i])
+
+    # Upsample the frames to target length
+    if len(viseme_frames) < total_frames:
+        viseme_frames = upsample(viseme_frames, total_frames)
+    return viseme_frames
+
+
+def upsample(sequence, length):
+    repetitions = length // len(sequence)
+    remainder = length % len(sequence)
+    upsampled = [elem for elem in sequence for _ in range(repetitions)]
+
+    final_upsampled = []
+    for i, _ in enumerate(upsampled):
+        if i > (len(upsampled) - remainder - 1):
+            final_upsampled.extend([upsampled[i], upsampled[i]])
+        else:
+            final_upsampled.append(upsampled[i])
+
+    return final_upsampled
 
 
 def phoneme_no_stress(phoneme: str) -> str:
@@ -55,114 +172,9 @@ def phoneme_to_viseme(phoneme: str) -> list[str]:
     return viseme
 
 
-def generate_viseme_frames(sequence: list, total_frames: int) -> list:
-    """Generates the complete viseme frame sequence for word viseme
-
-    Args:
-        sequence (list): List of visemes in word
-        total_frames (int): Total frames allocated to full word
-
-    Returns:
-        list: Completed viseme video sequence of images for word
-    """
-    if total_frames <= 0:
-        raise Exception("total_frames must be an integer greater than 0.")
-
-    frames_per_subviseme = total_frames // len(sequence)
-    remainder_end = total_frames % len(sequence)
-    if frames_per_subviseme == 0:
-        frames_per_subviseme = 1
-
-    viseme_frames = []
-    for i, _ in enumerate(sequence):
-        sub_sequence = sequence[i]
-        if len(sub_sequence) > frames_per_subviseme:
-            viseme_frames.extend(sub_sequence[:frames_per_subviseme])
-        elif len(sub_sequence) < frames_per_subviseme:
-            multiple = frames_per_subviseme // len(sequence)
-            remainder = frames_per_subviseme % len(sequence)
-            for _ in range(multiple):
-                viseme_frames.extend(sub_sequence)
-            last_frame = sub_sequence[-1]
-            for _ in range(remainder):
-                viseme_frames.append(last_frame)
-        else:
-            viseme_frames.extend(sub_sequence)
-
-    if remainder_end:
-        last_frame = viseme_frames[-1]
-        for _ in range(remainder_end):
-            viseme_frames.append(last_frame)
-    if len(viseme_frames) > total_frames:
-        remove_n = len(viseme_frames) // total_frames
-        viseme_frames = [
-            viseme_frames[i]
-            for i in range(len(viseme_frames))
-            if (i + 1) % remove_n != 0
-        ]
-        viseme_frames = viseme_frames[:total_frames]
-
-    return viseme_frames
-
-
-def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
-    """Converts and audio / txt file to force aligned viseme sequence
-
-    Args:
-        audio_file (str): Path to audio file of a person speaking english (.wav or .mp3)
-        txt_file (str): Path to txt file trascript of audio recording
-
-    Returns:
-        list[WordViseme]: A list of force aligned WordViseme objects
-    """
-    # Provide path to audio_file and corresponding txt_file with audio transcript
-    aligner = ForceAlign(audio_file=audio_file, txt_file=txt_file)
-
-    # Runs forced alignment algorithm and returns alignment results
-    words = aligner.inference()
-
-    viseme_sequence = []
-    for word in words:
-        phonemes = [phoneme_no_stress(phoneme) for phoneme in word.phonemes]
-        images = [phoneme_to_viseme(phoneme=phoneme) for phoneme in phonemes]
-        duration = word.time_end - word.time_start
-        total_frames = int(duration * FPS)
-        if total_frames:
-            visemes = generate_viseme_frames(sequence=images, total_frames=total_frames)
-            total_frames = len(visemes)
-        else:
-            visemes = None
-            total_frames = None
-
-        viseme_sequence.append(
-            WordViseme(
-                word=word.word,
-                visemes=visemes,
-                phonemes=phonemes,
-                time_start=word.time_start,
-                time_end=word.time_end,
-                duration=duration,
-                total_frames=total_frames,
-            )
-        )
-
-    # Add silence viseme (closed mouth) between speaking visemes
-    finished_sequence = []
-    for i, _ in enumerate(viseme_sequence):
-        finished_sequence.append(viseme_sequence[i])
-        if i == len(viseme_sequence) - 1:
-            break
-
-        silent_viseme = get_silent_viseme(viseme_sequence[i], viseme_sequence[i + 1])
-        if silent_viseme:
-            finished_sequence.append(silent_viseme)
-
-    return finished_sequence
-
-
-def get_silent_viseme(current_viseme, next_viseme, fps=FPS):
+def get_silent_viseme(current_viseme, next_viseme, total_duration, target_frames):
     # The time the silent viseme should start after previous viseme (i.e. the next frame)
-    delta = 1 / fps
+    delta = 0.00000000000000000001
 
     # Get start time, end time, and total duration of silence
     silence_start = current_viseme.time_end + delta
@@ -170,9 +182,11 @@ def get_silent_viseme(current_viseme, next_viseme, fps=FPS):
     duration = silence_end - silence_start
 
     # Get number of frames for silence segment (24 frames per second of silence)
-    total_frames = int(fps * duration)
-    if total_frames <= 0:
-        return None
+    total_frames = int((duration / total_duration) * target_frames)
+    if total_frames == 0 and random.choice([True, False]):
+        total_frames += 1
+    elif random.choice([True, False]):
+        total_frames += 1
 
     # Create frames for silence
     silent_visemes = [SILENT_VISEME for _ in range(total_frames)]
