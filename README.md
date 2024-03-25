@@ -19,11 +19,15 @@ PyToon is a Python based animation library for animating characters and their mo
 - Basic Usage:
 
 ```
-from apple.animator import animate
+from pytoon.animator import animate
+
+transcript_path = "./.temp/speech.txt"
+with open(transcript_path, "r") as file:
+    transcript = file.read()
 
 animate(
     audio_file="speech.mp3", # input audio
-    txt_file="speech.txt", # audio transcript
+    transcript=transcript, # audio transcript
     video_path="final.mp4", # output video path
 )
 ```
