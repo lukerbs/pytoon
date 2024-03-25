@@ -5,3 +5,6 @@ out.mp4
 final.mp4
 .temp
 .vscode
+*.egg-info/
+build 
+dist
