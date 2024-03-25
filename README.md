@@ -12,6 +12,7 @@ Apple Animate is a Python based animation library for animating characters and t
 1. Clone the repo to your computer
 2. Create a virtual environment: `python3 -m venv venv`
 3. Activate your virtual environment: `source venv/bin/activate`
+4. Install requirements: `pip3 install -r requirements.txt`
 
 ## Usage
 - For usage example see `test.py` in the root directory of the repository. 
@@ -21,9 +22,9 @@ Apple Animate is a Python based animation library for animating characters and t
 from apple.animator import animate
 
 animate(
-    audio_file="speech.mp3",
-    txt_file="speech.txt",
-    video_path="final.mp4",
+    audio_file="speech.mp3", # input audio
+    txt_file="speech.txt", # audio transcript
+    video_path="final.mp4", # output video path
 )
 ```
 
