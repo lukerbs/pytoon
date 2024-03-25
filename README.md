@@ -1,6 +1,6 @@
-# Apple Animate
+# PyToon
 ## Overview 
-Apple Animate is a Python based animation library for animating characters and their mouth movements. This tools uses machine learning based audio analysis techiques to automatically lip-sync animated character mouth mouth movements to a given audio recording of someone talking.
+PyToon is a Python based animation library for animating characters and their mouth movements. This tools uses machine learning based audio analysis techiques to automatically lip-sync animated character mouth mouth movements to a given audio recording of someone talking.
 
 [Example Output Video](https://youtu.be/fX2loRnr7II)
 
