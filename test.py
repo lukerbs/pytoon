@@ -1,6 +1,6 @@
-from apple.animator import animate
-from apple.lipsync import viseme_sequencer, WordViseme
-from apple.util import resample_audio
+from pytoon.animator import animate
+from pytoon.lipsync import viseme_sequencer, WordViseme
+from pytoon.util import resample_audio
 from pprint import pprint
 
 from moviepy.editor import VideoFileClip, AudioFileClip, vfx
