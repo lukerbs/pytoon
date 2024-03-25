@@ -1,30 +1,31 @@
-# Apple Animation
+# Apple Animate
+## Overview 
+Apple Animate is a Python based animation library for animating characters and their mouth movements. This tools uses machine learning based audio analysis techiques to automatically lip-sync animated character mouth mouth movements to a given audio recording of someone talking.
 
-## Emotions
-There are 6 emotions
-1. Explain 1-15
-2. Happy 16-30
-3. Sad 31-45
-4. Angry 46-60
-5. Confused 71-75
-6. Rhetorical 76-90
+[Example Output Video](https://youtu.be/fX2loRnr7II)
 
-## Poses & Blinking Animation
-- Every emotion has several pose variations
-- Every pose variation has 3 images - Eyes open, eyes halfway shut, eyes closed
-- For every pose variation, you can cycle through the three images up and down to animate blinking
-- There is a total of 30 unique poses, each with images for blink animations
+## Features
+- Automatically create cartoon animated lip-sync videos from just an audio file.
+- Programmatically generate videos.
 
-## Phonemes & Visemes
-6 Mouth Forms
-1.png: Y,I,L
-5.png: A,E
-7.png: S,T,D,K,G,J, etc.
-8.png: F,V
-9.png: M,P,B
-10.png: W,U,R,O
+## Getting Started 
+1. Clone the repo to your computer
+2. Create a virtual environment: `python3 -m venv venv`
+3. Activate your virtual environment: `source venv/bin/activate`
 
+## Usage
+- For usage example see `test.py` in the root directory of the repository. 
+- Basic Usage:
 
-# ! Todo !
-# Use viseme sequence to determine number of frames needed to be generated for video 
-# Use number of frames for vidoe to generate pose frames
+```
+from apple.animator import animate
+
+animate(
+    audio_file="speech.mp3",
+    txt_file="speech.txt",
+    video_path="final.mp4",
+)
+```
+
+## Acknowledgements
+This project uses character images created by [lazykh](https://github.com/carykh/lazykh).
