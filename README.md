@@ -7,6 +7,9 @@ PyToon is a Python based animation library for animating characters and their mo
 ## Features
 - Automatically create cartoon animated lip-sync videos from just an audio file.
 - Programmatically generate videos.
+- OS Independent! PyToon works on Mac, Windows, and Linux 
+- Optimized for both CPU and GPU
+- Fast Processing! A 60 second audio clip takes ~52 seconds to generate a lip-synced video.
 
 ## Getting Started 
 1. Clone the repo to your computer
