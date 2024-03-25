@@ -24,14 +24,14 @@ class FrameSequence:
 class animate:
     """Animates a cartoon that is lip synced to provieded audio voiceover."""
 
-    def __init__(self, audio_file: str, txt_file: str, video_path: str):
+    def __init__(self, audio_file: str, transcript: str, video_path: str):
         self.sequence = FrameSequence()
         self.video_path = video_path
         self.assets = get_assets()
         self.fps = 24
 
         # Create sequence of mouth images
-        self.viseme_sequence = viseme_sequencer(audio_file, txt_file)
+        self.viseme_sequence = viseme_sequencer(audio_file, transcript)
         self.build_mouth_sequence()
 
         time_t = len(self.sequence.mouth_files) / 24

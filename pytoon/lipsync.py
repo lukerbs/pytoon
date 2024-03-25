@@ -26,18 +26,18 @@ class WordViseme:
     total_frames: int  # total number of frames in video for word
 
 
-def viseme_sequencer(audio_file: str, txt_file: str) -> list[WordViseme]:
+def viseme_sequencer(audio_file: str, transcript: str) -> list[WordViseme]:
     """Converts and audio / txt file to force aligned viseme sequence
 
     Args:
         audio_file (str): Path to audio file of a person speaking english (.wav or .mp3)
-        txt_file (str): Path to txt file trascript of audio recording
+        transcript (str): Trascript string of audio recording
 
     Returns:
         list[WordViseme]: A list of force aligned WordViseme objects
     """
     # Provide path to audio_file and corresponding txt_file with audio transcript
-    aligner = ForceAlign(audio_file=audio_file, txt_file=txt_file)
+    aligner = ForceAlign(audio_file=audio_file, transcript=transcript)
 
     # Runs forced alignment algorithm and returns alignment results
     words = aligner.inference()

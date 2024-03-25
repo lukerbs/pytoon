@@ -15,9 +15,12 @@ audio_path = "./.temp/speech.mp3"
 video_path = "./out.mp4"
 final_video_path = "./final.mp4"
 
+with open(text_path, "r") as file:
+    transcript = file.read()
+
 animate(
     audio_file=audio_path,
-    txt_file=text_path,
+    transcript=transcript,
     video_path=video_path,
 )
 
