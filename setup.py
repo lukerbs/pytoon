@@ -8,7 +8,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="pytoon",
-    version="1.1.2",
+    version="1.1.3",
     packages=find_packages(),
     install_requires=[
         "forcealign==1.1.1",

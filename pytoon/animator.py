@@ -44,7 +44,6 @@ class animate:
         self.frame_size = self.get_frame_size()
         # Create the animation
         self.compile_animation()
-        return self.final_frames
 
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
