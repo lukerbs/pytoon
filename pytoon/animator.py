@@ -29,6 +29,7 @@ class animate:
         self.video_path = video_path
         self.assets = get_assets()
         self.fps = 24
+        self.final_frames = []
 
         # Create sequence of mouth images
         self.viseme_sequence = viseme_sequencer(audio_file, transcript)
@@ -43,6 +44,7 @@ class animate:
         self.frame_size = self.get_frame_size()
         # Create the animation
         self.compile_animation()
+        return self.final_frames
 
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
@@ -173,6 +175,7 @@ class animate:
                 )
             else:
                 final_frame = frame
+            self.final_frames.append(final_frame)
             video.write(final_frame)
         video.release()
 
