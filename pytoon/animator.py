@@ -5,6 +5,7 @@ import random
 from PIL import Image
 import numpy as np
 import cv2
+import copy
 
 from .util import read_json
 from .dataloader import get_assets
@@ -192,7 +193,7 @@ def mouth_transformation(mouth_file, mouth_coord) -> Image:
     Returns:
         Image: PIL Image object of mouth image with applied transformations
     """
-    mouth = Image.open(mouth_file)
+    mouth = copy.deepcopy(Image.open(mouth_file))
     # Flip mouth horizontally if necessary
     if mouth_coord.flip_x is True:
         mouth = mouth.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
