@@ -18,19 +18,23 @@ final_video_path = "./final.mp4"
 with open(text_path, "r") as file:
     transcript = file.read()
 
-animate(
+animation = animate(
     audio_file=audio_path,
     transcript=transcript,
     video_path=video_path,
 )
 
-video_clip = VideoFileClip(video_path)
-audio_clip = AudioFileClip(audio_path)
-print(audio_clip.duration)
-audio_clip = audio_clip.set_start(0.3)
-video_clip = video_clip.set_audio(audio_clip)
-video_clip.write_videofile(final_video_path, codec="libx264", audio_codec="aac")
+print(animation.final_frames.shape)
 
-# Close clips
-video_clip.close()
-audio_clip.close()
+
+
+# video_clip = VideoFileClip(video_path)
+# audio_clip = AudioFileClip(audio_path)
+# print(audio_clip.duration)
+# audio_clip = audio_clip.set_start(0.3)
+# video_clip = video_clip.set_audio(audio_clip)
+# video_clip.write_videofile(final_video_path, codec="libx264", audio_codec="aac")
+
+# # Close clips
+# video_clip.close()
+# audio_clip.close()

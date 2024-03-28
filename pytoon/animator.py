@@ -165,7 +165,7 @@ class animate:
         video = cv2.VideoWriter(self.video_path, fourcc, self.fps, self.frame_size)
 
         for i, _ in enumerate(self.sequence.pose_files):
-            frame = cv2.imread(self.sequence.pose_files[i])
+            frame = cv2.imread(self.sequence.pose_files[i], cv2.IMREAD_UNCHANGED)
             if self.sequence.mouth_files[i] is not None:
                 final_frame = render_frame(
                     pose_img=frame,
@@ -225,7 +225,7 @@ def render_frame(pose_img: Image, mouth_img: Image, mouth_coord):
     pose_img.paste(im=mouth_img, box=paste_coordinates, mask=mouth_img)
     np_image = np.array(pose_img)
 
-    # Convert BGR PIL image to RGB (if necessary)
-    if np_image.shape[2] == 3:
-        np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
+    # # Convert BGR PIL image to RGB (if necessary)
+    # if np_image.shape[2] == 3:
+    #     np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
     return np_image
