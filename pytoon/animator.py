@@ -237,7 +237,13 @@ def mouth_transformation(mouth_file, mouth_coord) -> Image:
     return mouth
 
 
+def bgra_to_rgba(image):
+    # Swap blue and red channels
+    b, g, r, a = np.rollaxis(image, axis=-1)
+    return np.dstack([r, g, b, a])
+
 def render_frame(pose_img: Image, mouth_img: Image, mouth_coord):
+    pose_img = bgra_to_rgba(pose_img) # convert to rgba
     pose_img = Image.fromarray(pose_img)
     mouth_width, mouth_height = mouth_img.size
 
