@@ -183,7 +183,7 @@ class animate:
 
     def export(self, path:str, background: VideoClip):
         animation_clip = ImageSequenceClip(self.final_frames, fps=self.fps, with_mask=True)
-        new_height = int(background.size[1])
+        new_height = int(background.size[1]*.5)
         new_width = int(animation_clip.w * (new_height / animation_clip.h))
         animation_clip = animation_clip.resize(width=new_width, height=new_height)
 
