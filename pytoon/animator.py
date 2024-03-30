@@ -6,10 +6,17 @@ from PIL import Image
 import numpy as np
 import cv2
 import copy
+from moviepy.editor import (
+    ImageSequenceClip, 
+    CompositeVideoClip, 
+    CompositeAudioClip, 
+    AudioFileClip,
+    VideoClip
+) 
 
 from .util import read_json
 from .dataloader import get_assets
-from .lipsync import viseme_sequencer
+from .lipsync import viseme_sequencer, upsample
 
 
 class FrameSequence:
@@ -24,27 +31,27 @@ class FrameSequence:
 
 class animate:
     """Animates a cartoon that is lip synced to provieded audio voiceover."""
-
-    def __init__(self, audio_file: str, transcript: str, video_path: str):
+    def __init__(self, audio_file: str, transcript: str, fps:int=48):
+        self.audio_file = audio_file
         self.sequence = FrameSequence()
-        self.video_path = video_path
         self.assets = get_assets()
-        self.fps = 24
+        self.fps = fps
         self.final_frames = []
 
         # Create sequence of mouth images
-        self.viseme_sequence = viseme_sequencer(audio_file, transcript)
+        self.viseme_sequence = viseme_sequencer(self.audio_file, transcript, self.fps)
         self.build_mouth_sequence()
 
-        time_t = len(self.sequence.mouth_files) / 24
+        self.duration = len(self.sequence.mouth_files) / self.fps
         print(f"Num Created: {len(self.sequence.mouth_files)}")
-        print(f"Duration: {time_t}")
+        print(f"Duration: {self.duration}")
 
         self.build_pose_sequence()
 
         self.frame_size = self.get_frame_size()
         # Create the animation
         self.compile_animation()
+
 
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
@@ -75,7 +82,7 @@ class animate:
             if frames_since_blink > seconds_per_blink * self.fps:
                 self.blink(pose=pose)
                 blink_count = len(self.sequence.pose_files)
-                seconds_per_blink = random.randint(2, 6)
+                seconds_per_blink = random.randint(1, 3)
 
             # Shorten list of poses if too many were made
             if len(self.sequence.pose_files) > len(self.sequence.mouth_files):
@@ -162,9 +169,6 @@ class animate:
         return (width, height)
 
     def compile_animation(self):
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        video = cv2.VideoWriter(self.video_path, fourcc, self.fps, self.frame_size)
-
         for i, _ in enumerate(self.sequence.pose_files):
             frame = cv2.imread(self.sequence.pose_files[i], cv2.IMREAD_UNCHANGED)
             if self.sequence.mouth_files[i] is not None:
@@ -176,8 +180,29 @@ class animate:
             else:
                 final_frame = frame
             self.final_frames.append(final_frame)
-            video.write(final_frame)
-        video.release()
+
+    def export(self, path:str, background: VideoClip):
+        animation_clip = ImageSequenceClip(self.final_frames, fps=self.fps, with_mask=True)
+        new_height = int(background.size[1])
+        new_width = int(animation_clip.w * (new_height / animation_clip.h))
+        animation_clip = animation_clip.resize(width=new_width, height=new_height)
+
+        # Overlay the animation on top of thee background clip
+        final_clip = CompositeVideoClip(
+            clips=[background, animation_clip.set_position(("right", "bottom"))],
+            use_bgclip=True
+        )
+
+        # Add speech audio to clip with 0.2 second delay
+        audio_clip= AudioFileClip(self.audio_file)
+        audio_clip = CompositeAudioClip([audio_clip.set_start(0.2)])
+        final_clip = final_clip.set_audio(audio_clip)
+
+        # Export video to .mp4 
+        final_clip.write_videofile(path, codec="libx264", audio_codec='aac', fps=self.fps)
+
+
+
 
 
 def mouth_transformation(mouth_file, mouth_coord) -> Image:

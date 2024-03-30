@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Union
 import random
 
-FPS = 24
 # Viseme image for silence (i.e. closed mouth, not speaking)
 SILENT_VISEME = "9.png"
 SILENT_PHONEME = "PAUSE"
@@ -26,7 +25,7 @@ class WordViseme:
     total_frames: int  # total number of frames in video for word
 
 
-def viseme_sequencer(audio_file: str, transcript: str) -> list[WordViseme]:
+def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordViseme]:
     """Converts and audio / txt file to force aligned viseme sequence
 
     Args:
@@ -46,7 +45,7 @@ def viseme_sequencer(audio_file: str, transcript: str) -> list[WordViseme]:
     print(f"Time Start: {first_word.time_start}")
     last_word = words[-1]
     total_duration = last_word.time_end
-    target_frames = int(total_duration * 24)
+    target_frames = int(total_duration * fps)
     print(f"Target Duration: {total_duration}")
     print(f"Target Frames: {target_frames}")
 
@@ -56,9 +55,9 @@ def viseme_sequencer(audio_file: str, transcript: str) -> list[WordViseme]:
         images = [phoneme_to_viseme(phoneme=phoneme) for phoneme in phonemes]
         duration = word.time_end - word.time_start
         total_frames = int((duration / total_duration) * target_frames)
-        if total_frames == 0 and random.choice([True, False]):
-            total_frames = 1
-        elif random.choice([True, False]):
+
+        remainder = ((duration / total_duration) * target_frames) % 1
+        if random.choices([True, False], [remainder, (1-remainder)])[0]:
             total_frames += 1
 
         # If viseme is more than one frame long
@@ -89,7 +88,8 @@ def viseme_sequencer(audio_file: str, transcript: str) -> list[WordViseme]:
         )
         if silent_viseme:
             finished_sequence.append(silent_viseme)
-
+    
+    finshed_sequence = upsample(finished_sequence, length=target_frames)
     return finished_sequence
 
 
@@ -183,9 +183,8 @@ def get_silent_viseme(current_viseme, next_viseme, total_duration, target_frames
 
     # Get number of frames for silence segment (24 frames per second of silence)
     total_frames = int((duration / total_duration) * target_frames)
-    if total_frames == 0 and random.choice([True, False]):
-        total_frames += 1
-    elif random.choice([True, False]):
+    remainder = ((duration / total_duration) * target_frames) % 1
+    if random.choices([True, False], [remainder, (1-remainder)])[0]:
         total_frames += 1
 
     # Create frames for silence
