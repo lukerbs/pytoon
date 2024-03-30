@@ -80,21 +80,6 @@
         "happy": [
             {
                 "image_files": {
-                    "open": "/assets/poses/16.png",
-                    "middle": "/assets/poses/17.png",
-                    "shut": "/assets/poses/18.png"
-                },
-                "mouth_coordinates": {
-                    "x": 346.8,
-                    "y": 450.9,
-                    "scale_x": 1.0,
-                    "scale_y": 1.0,
-                    "flip_x": false,
-                    "rotation": 0.0
-                }
-            },
-            {
-                "image_files": {
                     "open": "/assets/poses/19.png",
                     "middle": "/assets/poses/20.png",
                     "shut": "/assets/poses/21.png"
@@ -121,21 +106,6 @@
                     "scale_y": 1.0,
                     "flip_x": false,
                     "rotation": 11.6
-                }
-            },
-            {
-                "image_files": {
-                    "open": "/assets/poses/25.png",
-                    "middle": "/assets/poses/26.png",
-                    "shut": "/assets/poses/27.png"
-                },
-                "mouth_coordinates": {
-                    "x": 390.9,
-                    "y": 498.3,
-                    "scale_x": 1.0,
-                    "scale_y": 1.0,
-                    "flip_x": false,
-                    "rotation": 0.0
                 }
             },
             {
