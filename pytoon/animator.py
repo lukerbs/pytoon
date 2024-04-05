@@ -181,9 +181,9 @@ class animate:
                 final_frame = frame
             self.final_frames.append(final_frame)
 
-    def export(self, path:str, background: VideoClip):
+    def export(self, path:str, background: VideoClip, scale: float=0.7):
         animation_clip = ImageSequenceClip(self.final_frames, fps=self.fps, with_mask=True)
-        new_height = int(background.size[1]*.5)
+        new_height = int(background.size[1] * scale)
         new_width = int(animation_clip.w * (new_height / animation_clip.h))
         animation_clip = animation_clip.resize(width=new_width, height=new_height)
 
@@ -200,9 +200,7 @@ class animate:
 
         # Export video to .mp4 
         final_clip.write_videofile(path, codec="libx264", audio_codec='aac', fps=self.fps)
-
-
-
+        
 
 
 def mouth_transformation(mouth_file, mouth_coord) -> Image:

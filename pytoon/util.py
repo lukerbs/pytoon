@@ -68,3 +68,36 @@ def resample_audio(
 
     padding_secs = round((padding / target_sr), 2)
     return resampled_audio, target_sr
+
+
+def add_outline(image_path, outline_color=(255, 255, 255), outline_width=5):
+    """
+    Adds a white outline around a .png image that has a transparent background
+    """
+    # Open the image
+    img = Image.open(image_path)
+
+    # Convert image to RGBA if not already
+    img = img.convert("RGBA")
+
+    # Create a new image with the same size as the original image
+    outline_img = Image.new("RGBA", img.size, (255, 255, 255, 0))
+
+    # Get pixel data
+    pixels = img.load()
+    outline_pixels = outline_img.load()
+
+    # Add white outline
+    for x in range(img.width):
+        for y in range(img.height):
+            r, g, b, a = pixels[x, y]
+            if a > 0:  # Check if pixel is not transparent
+                for dx in range(-outline_width, outline_width + 1):
+                    for dy in range(-outline_width, outline_width + 1):
+                        # Avoid out-of-bounds access
+                        if 0 <= x + dx < img.width and 0 <= y + dy < img.height:
+                            outline_pixels[x + dx, y + dy] = outline_color
+
+    # Overlay the original image on top of the outline image
+    outline_img.paste(img, (0, 0), mask=img)
+    outline_img.save(image_path)
