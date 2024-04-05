@@ -35,6 +35,7 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
     Returns:
         list[WordViseme]: A list of force aligned WordViseme objects
     """
+    ENDING_SILENCE_SECONDS = 2.5
     # Provide path to audio_file and corresponding txt_file with audio transcript
     aligner = ForceAlign(audio_file=audio_file, transcript=transcript)
 
@@ -45,9 +46,9 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
     print(f"Time Start: {first_word.time_start}")
     last_word = words[-1]
     total_duration = last_word.time_end
-    target_frames = int(total_duration * fps)
-    print(f"Target Duration: {total_duration}")
-    print(f"Target Frames: {target_frames}")
+    target_frames = int(total_duration * fps) 
+    print(f"Target Duration: {total_duration + ENDING_SILENCE_SECONDS}")
+    print(f"Target Frames: {target_frames + int(ENDING_SILENCE_SECONDS *fps)}")
 
     viseme_sequence = []
     for word in words:
@@ -90,6 +91,8 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
             finished_sequence.append(silent_viseme)
     
     finshed_sequence = upsample(finished_sequence, length=target_frames)
+    silence = ending_silence(duration=ENDING_SILENCE_SECONDS, fps=fps, start_t=total_duration+0.001)
+    finished_sequence.append(silence)
     return finished_sequence
 
 
@@ -124,6 +127,7 @@ def generate_viseme_frames(sequence: list, total_frames: int) -> list:
     # Upsample the frames to target length
     if len(viseme_frames) < total_frames:
         viseme_frames = upsample(viseme_frames, total_frames)
+    
     return viseme_frames
 
 
@@ -196,6 +200,22 @@ def get_silent_viseme(current_viseme, next_viseme, total_duration, target_frames
         phonemes=phonemes,
         time_start=silence_start,
         time_end=silence_end,
+        duration=duration,
+        total_frames=total_frames,
+    )
+
+def ending_silence(duration:float, fps:int, start_t:int):
+    total_frames = int(duration * fps)
+
+    # Create frames for silence
+    silent_visemes = [SILENT_VISEME for _ in range(total_frames)]
+    phonemes = [SILENT_PHONEME for _ in range(total_frames)]
+    return WordViseme(
+        word=None,
+        visemes=silent_visemes,
+        phonemes=phonemes,
+        time_start=start_t,
+        time_end=start_t+duration,
         duration=duration,
         total_frames=total_frames,
     )
