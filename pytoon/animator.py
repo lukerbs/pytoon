@@ -27,6 +27,7 @@ class FrameSequence:
         self.mouth_images = []
         self.mouth_coords = []
         self.final_frames = []
+        self.pose_changes = []
 
 
 class animate:
@@ -56,13 +57,22 @@ class animate:
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
         seconds_per_pose = 6
-        seconds_per_blink = 3
+        seconds_per_blink = random.randint(1, 3)
 
         frame_count = 0
         blink_count = 0
         emotion = self.random_emotion()
         pose = random.choice(emotion)
         # Add a character pose frame for every frame of a mouth
+
+        for i,_ in enumerate(self.sequence.mouth_files):
+            if self.sequence.pose_changes[i]:
+                # Change the pose of the character
+                emotion = self.random_emotion()
+                pose = random.choice(emotion)
+
+            self.sequence.pose_files.append(pose.image_files["open"])
+
         while len(self.sequence.pose_files) <= len(self.sequence.mouth_files):
             added_frames = len(self.sequence.pose_files) - frame_count
             if added_frames > seconds_per_pose * self.fps:
@@ -107,6 +117,39 @@ class animate:
             )
             self.sequence.mouth_images.append(transformed_image)
         return
+    
+    def blink_manager(self, pose, idx):
+        blink_duration = 0.4
+        seconds_between_blinks = 3.0
+        sub_blinks = ["middle", "shut", "middle"]
+
+        frames_between_blinks = seconds_between_blinks * self.fps
+        frames_per_blink = int(blink_duration * self.fps)
+        frames_per_sub_blink = int(frames_per_blink / len(sub_blinks)) + 1
+
+        full_cycle = frames_between_blinks + frames_per_blink
+
+        start_1 = frames_between_blinks
+        start_2 = start_1 + frames_per_sub_blink
+        start_3 = start_2 + frames_per_sub_blink
+        end_3 = start_3 + frames_per_sub_blink
+
+        if start_1 <= (idx % full_cycle) < start_2:
+            frame = pose.image_files["middle"]
+
+        elif start_2 <= (idx % full_cycle) < start_3:
+            frame = pose.image_files["shut"]
+
+        elif start_3 <= (idx % full_cycle) < end_3:
+            frame = pose.image_files["middle"]
+
+        else:
+            frame = pose.image_files["open"]
+
+        return frame
+
+
+
 
     def blink(self, pose):
         """Generates an animation sequence for eye blinking in a specific pose
@@ -146,6 +189,12 @@ class animate:
         for i, _ in enumerate(self.viseme_sequence):
             if self.viseme_sequence[i].visemes:
                 self.sequence.mouth_files.extend(self.viseme_sequence[i].visemes)
+                pose_changes = [0] * len(self.viseme_sequence[i].visemes)
+                if self.viseme_sequence[i].breath:
+                    pose_changes[0] = 1
+                    self.sequence.pose_changes.extend(pose_changes)
+                else:
+                    self.sequence.pose_changes.extend(pose_changes)
 
         # Prepend absolute path to mouth images
         for i, _ in enumerate(self.sequence.mouth_files):
@@ -255,7 +304,4 @@ def render_frame(pose_img: Image, mouth_img: Image, mouth_coord):
     pose_img.paste(im=mouth_img, box=paste_coordinates, mask=mouth_img)
     np_image = np.array(pose_img)
 
-    # # Convert BGR PIL image to RGB (if necessary)
-    # if np_image.shape[2] == 3:
-    #     np_image = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
     return np_image
