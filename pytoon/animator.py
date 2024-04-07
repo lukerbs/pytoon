@@ -183,7 +183,7 @@ class animate:
         final_clip = final_clip.set_audio(audio_clip)
 
         # Export video to .mp4 
-        final_clip.write_videofile(path, codec="libx264", audio_codec='aac', predset="ultrafast", threads=4, fps=self.fps)
+        final_clip.write_videofile(path, codec="libx264", audio_codec='aac', preset="ultrafast", threads=4, fps=self.fps)
         
 
 
