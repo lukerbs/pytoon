@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Union
 import random
+import re
 
 # Viseme image for silence (i.e. closed mouth, not speaking)
 SILENT_VISEME = "9.png"
@@ -23,6 +24,7 @@ class WordViseme:
     time_end: datetime  # The time the word ends (seconds)
     duration: float  # total word duration from start to end (seconds)
     total_frames: int  # total number of frames in video for word
+    breath: bool
 
 
 def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordViseme]:
@@ -74,6 +76,7 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
                 time_end=word.time_end,
                 duration=duration,
                 total_frames=total_frames,
+                breath=word.breath
             )
         )
 
@@ -202,6 +205,7 @@ def get_silent_viseme(current_viseme, next_viseme, total_duration, target_frames
         time_end=silence_end,
         duration=duration,
         total_frames=total_frames,
+        breath=False
     )
 
 def ending_silence(duration:float, fps:int, start_t:int):
@@ -218,4 +222,5 @@ def ending_silence(duration:float, fps:int, start_t:int):
         time_end=start_t+duration,
         duration=duration,
         total_frames=total_frames,
+        breath=False
     )

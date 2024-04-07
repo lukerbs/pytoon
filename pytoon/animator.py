@@ -3,6 +3,7 @@ import json
 import random
 
 from PIL import Image
+from datetime import datetime
 import numpy as np
 import cv2
 import copy
@@ -39,6 +40,9 @@ class animate:
         self.fps = fps
         self.final_frames = []
 
+        # Initialize blinking rate (blink every 3 seconds)
+        self.blink_rate = 3.0
+
         # Create sequence of mouth images
         self.viseme_sequence = viseme_sequencer(self.audio_file, transcript, self.fps)
         self.build_mouth_sequence()
@@ -56,53 +60,19 @@ class animate:
 
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
-        seconds_per_pose = 6
-        seconds_per_blink = random.randint(1, 3)
-
-        frame_count = 0
-        blink_count = 0
         emotion = self.random_emotion()
         pose = random.choice(emotion)
-        # Add a character pose frame for every frame of a mouth
 
+        # Add a character pose frame for every frame of a mouth
         for i,_ in enumerate(self.sequence.mouth_files):
             if self.sequence.pose_changes[i]:
                 # Change the pose of the character
                 emotion = self.random_emotion()
                 pose = random.choice(emotion)
 
-            self.sequence.pose_files.append(pose.image_files["open"])
-
-        while len(self.sequence.pose_files) <= len(self.sequence.mouth_files):
-            added_frames = len(self.sequence.pose_files) - frame_count
-            if added_frames > seconds_per_pose * self.fps:
-                # Change pose if 6 seconds has passed
-                emotion = self.random_emotion()
-                pose = random.choice(emotion)
-                frame_count = len(self.sequence.pose_files)
-
-            # Add 1 second worth of pose files to pose frames sequencs
-            pose_files = [pose.image_files["open"] for _ in range(self.fps)]
-            mouth_coords = [pose.mouth_coordinates for _ in range(self.fps)]
-            self.sequence.pose_files.extend(pose_files)
-            self.sequence.mouth_coords.extend(mouth_coords)
-
-            # Character should blink every x seconds
-            frames_since_blink = len(self.sequence.pose_files) - blink_count
-            if frames_since_blink > seconds_per_blink * self.fps:
-                self.blink(pose=pose)
-                blink_count = len(self.sequence.pose_files)
-                seconds_per_blink = random.randint(1, 3)
-
-            # Shorten list of poses if too many were made
-            if len(self.sequence.pose_files) > len(self.sequence.mouth_files):
-                self.sequence.pose_files = self.sequence.pose_files[
-                    : len(self.sequence.mouth_files)
-                ]
-                self.sequence.mouth_coords = self.sequence.mouth_coords[
-                    : len(self.sequence.mouth_files)
-                ]
-                break
+            eyes = self.blink_manager(idx=i)
+            self.sequence.pose_files.append(pose.image_files[eyes])
+            self.sequence.mouth_coords.append(pose.mouth_coordinates)
 
         # Prepend absolute path to all pose images
         self.sequence.pose_files = [
@@ -110,7 +80,7 @@ class animate:
         ]
 
         # Create mouth PIL image for every frame, with image transformations based on pose
-        for i, _ in enumerate(self.sequence.mouth_files):
+        for i,_ in enumerate(self.sequence.mouth_files):
             transformed_image = mouth_transformation(
                 mouth_file=self.sequence.mouth_files[i],
                 mouth_coord=self.sequence.mouth_coords[i],
@@ -118,16 +88,16 @@ class animate:
             self.sequence.mouth_images.append(transformed_image)
         return
     
-    def blink_manager(self, pose, idx):
-        blink_duration = 0.4
-        seconds_between_blinks = 3.0
-        sub_blinks = ["middle", "shut", "middle"]
+    def blink_manager(self, idx):
 
-        frames_between_blinks = seconds_between_blinks * self.fps
-        frames_per_blink = int(blink_duration * self.fps)
-        frames_per_sub_blink = int(frames_per_blink / len(sub_blinks)) + 1
+        BLINK_DURATION = 0.16
+        SUB_BLINKS = ["middle", "shut", "middle"]
 
-        full_cycle = frames_between_blinks + frames_per_blink
+        frames_between_blinks = int(self.blink_rate * self.fps)
+        frames_per_blink = int(BLINK_DURATION * self.fps)
+        frames_per_sub_blink = int(frames_per_blink / len(SUB_BLINKS)) + 1
+
+        full_cycle = frames_between_blinks + (frames_per_sub_blink * len(SUB_BLINKS))
 
         start_1 = frames_between_blinks
         start_2 = start_1 + frames_per_sub_blink
@@ -135,53 +105,18 @@ class animate:
         end_3 = start_3 + frames_per_sub_blink
 
         if start_1 <= (idx % full_cycle) < start_2:
-            frame = pose.image_files["middle"]
+            eyes = "middle"
 
         elif start_2 <= (idx % full_cycle) < start_3:
-            frame = pose.image_files["shut"]
+            eyes = "shut"
 
         elif start_3 <= (idx % full_cycle) < end_3:
-            frame = pose.image_files["middle"]
+            eyes = "middle"
 
         else:
-            frame = pose.image_files["open"]
+            eyes = "open"
 
-        return frame
-
-
-
-
-    def blink(self, pose):
-        """Generates an animation sequence for eye blinking in a specific pose
-
-        Args:
-            pose (Pose): A Pose object containing pose configuration data
-
-        Returns:
-            int: Returns the number of frames that were generated for talling total generated
-        """
-        frames = []
-        blink_duration = 0.4
-        subsequence_duration = blink_duration / 5
-        num_frames = int(self.fps * subsequence_duration)
-
-        open_frames = [pose.image_files["open"] for _ in range(num_frames)]
-        mid_frames = [pose.image_files["middle"] for _ in range(num_frames)]
-        shut_frames = [pose.image_files["shut"] for _ in range(num_frames)]
-        open_wait = [pose.image_files["open"] for _ in range(int(self.fps * 1.5))]
-
-        frames.extend(open_frames)
-        frames.extend(mid_frames)
-        frames.extend(shut_frames)
-        frames.extend(mid_frames)
-        frames.extend(open_frames)
-
-        self.sequence.pose_files.extend(frames)
-
-        mouth_coords = [pose.mouth_coordinates for _ in range(len(frames))]
-        self.sequence.mouth_coords.extend(mouth_coords)
-
-        return len(frames)
+        return eyes
 
     def build_mouth_sequence(self):
         """Generates a sequence of mouth images for video"""
