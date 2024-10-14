@@ -1,4 +1,5 @@
 # PyToon
+[![Downloads](https://static.pepy.tech/badge/pytoon)](https://pepy.tech/project/pytoon)
 ## Overview 
 PyToon is a Python based animation library for animating characters and their mouth movements. This tools uses machine learning based audio analysis techiques to automatically lip-sync animated character mouth mouth movements to a given audio recording of someone talking.
 
