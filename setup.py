@@ -8,10 +8,10 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="pytoon",
-    version="1.4.3",
+    version="1.4.4",
     packages=find_packages(),
     install_requires=[
-        "forcealign>=1.1.5",
+        "forcealign>=1.1.8",
         "moviepy",
         "opencv-python",
         "scipy",
