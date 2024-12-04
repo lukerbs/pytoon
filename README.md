@@ -47,7 +47,7 @@ background_video = VideoFileClip("./path/to/background_video.mp4")
 animation.export(path='video_with_transcript.mp4', background=background_video, scale=0.7)
 ```
 
-### Example 2: Example 1: Generating Animation from an MP3 File (without transcript)
+### Example 2: Generating Animation from an MP3 File (without transcript)
 If you do not have a transcript, PyToon can automatically generate one using text-to-speech.
 
 ```python
