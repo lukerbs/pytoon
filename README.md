@@ -64,5 +64,28 @@ background_video = VideoFileClip("./path/to/background_video.mp4")
 animation.export(path='video_auto_transcript.mp4', background=background_video, scale=0.7)
 ```
 
+## Contributing
+We welcome contributions to PyToon! To contribute, follow these simple steps:
+1. **Fork the Repository**: Click the "Fork" button on the GitHub repository to create a copy under your account.
+2. **Clone Your Fork**: Clone your forked repository to your local machine.
+   ```bash
+   git clone https://github.com/your-username/pytoon.git
+   ```
+3. **Create a Branch**: Create a new branch for your feature or bug fix.
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+4. **Make Changes**: Implement your feature or fix the bug in your branch.
+5. **Test Your Changes**: Ensure that the `demo.py` script works correctly with your changes.
+6. **Commit and Push**: Commit your changes to your branch and push them to your forked repository.
+   ```bash
+   git add .
+   git commit -m "Add your descriptive commit message here"
+   git push origin feature/your-feature-name
+   ```
+7. **Submit a Pull Request**: Open a pull request from your branch to the main repository and describe your changes.
+
+Thank you for contributing!
+
 ## Acknowledgements
 This project uses character images created by [lazykh](https://github.com/carykh/lazykh).
