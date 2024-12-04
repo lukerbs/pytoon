@@ -27,12 +27,13 @@ class WordViseme:
     breath: bool
 
 
-def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordViseme]:
+def viseme_sequencer(audio_file: str, transcript: str = None, fps: int = 48) -> list[WordViseme]:
     """Converts and audio / txt file to force aligned viseme sequence
 
     Args:
         audio_file (str): Path to audio file of a person speaking english (.wav or .mp3)
-        transcript (str): Trascript string of audio recording
+        transcript (str): (optional) Trascript string of audio recording
+            - If not transcript is provided, it will automatically detect with speech to text
 
     Returns:
         list[WordViseme]: A list of force aligned WordViseme objects
@@ -48,7 +49,7 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
     print(f"Time Start: {first_word.time_start}")
     last_word = words[-1]
     total_duration = last_word.time_end
-    target_frames = int(total_duration * fps) 
+    target_frames = int(total_duration * fps)
     print(f"Target Duration: {total_duration + ENDING_SILENCE_SECONDS}")
     print(f"Target Frames: {target_frames + int(ENDING_SILENCE_SECONDS *fps)}")
 
@@ -60,7 +61,7 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
         total_frames = int((duration / total_duration) * target_frames)
 
         remainder = ((duration / total_duration) * target_frames) % 1
-        if random.choices([True, False], [remainder, (1-remainder)])[0]:
+        if random.choices([True, False], [remainder, (1 - remainder)])[0]:
             total_frames += 1
 
         # If viseme is more than one frame long
@@ -76,7 +77,7 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
                 time_end=word.time_end,
                 duration=duration,
                 total_frames=total_frames,
-                breath=word.breath
+                breath=word.breath,
             )
         )
 
@@ -87,14 +88,12 @@ def viseme_sequencer(audio_file: str, transcript: str, fps:int=48) -> list[WordV
         if i == len(viseme_sequence) - 1:
             break
 
-        silent_viseme = get_silent_viseme(
-            viseme_sequence[i], viseme_sequence[i + 1], total_duration, target_frames
-        )
+        silent_viseme = get_silent_viseme(viseme_sequence[i], viseme_sequence[i + 1], total_duration, target_frames)
         if silent_viseme:
             finished_sequence.append(silent_viseme)
-    
+
     finshed_sequence = upsample(finished_sequence, length=target_frames)
-    silence = ending_silence(duration=ENDING_SILENCE_SECONDS, fps=fps, start_t=total_duration+0.001)
+    silence = ending_silence(duration=ENDING_SILENCE_SECONDS, fps=fps, start_t=total_duration + 0.001)
     finished_sequence.append(silence)
     return finished_sequence
 
@@ -130,7 +129,7 @@ def generate_viseme_frames(sequence: list, total_frames: int) -> list:
     # Upsample the frames to target length
     if len(viseme_frames) < total_frames:
         viseme_frames = upsample(viseme_frames, total_frames)
-    
+
     return viseme_frames
 
 
@@ -191,7 +190,7 @@ def get_silent_viseme(current_viseme, next_viseme, total_duration, target_frames
     # Get number of frames for silence segment (24 frames per second of silence)
     total_frames = int((duration / total_duration) * target_frames)
     remainder = ((duration / total_duration) * target_frames) % 1
-    if random.choices([True, False], [remainder, (1-remainder)])[0]:
+    if random.choices([True, False], [remainder, (1 - remainder)])[0]:
         total_frames += 1
 
     # Create frames for silence
@@ -205,10 +204,11 @@ def get_silent_viseme(current_viseme, next_viseme, total_duration, target_frames
         time_end=silence_end,
         duration=duration,
         total_frames=total_frames,
-        breath=False
+        breath=False,
     )
 
-def ending_silence(duration:float, fps:int, start_t:int):
+
+def ending_silence(duration: float, fps: int, start_t: int):
     total_frames = int(duration * fps)
 
     # Create frames for silence
@@ -219,8 +219,8 @@ def ending_silence(duration:float, fps:int, start_t:int):
         visemes=silent_visemes,
         phonemes=phonemes,
         time_start=start_t,
-        time_end=start_t+duration,
+        time_end=start_t + duration,
         duration=duration,
         total_frames=total_frames,
-        breath=False
+        breath=False,
     )

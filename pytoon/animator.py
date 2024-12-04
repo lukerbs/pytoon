@@ -7,13 +7,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 import copy
-from moviepy.editor import (
-    ImageSequenceClip, 
-    CompositeVideoClip, 
-    CompositeAudioClip, 
-    AudioFileClip,
-    VideoClip
-) 
+from moviepy.editor import ImageSequenceClip, CompositeVideoClip, CompositeAudioClip, AudioFileClip, VideoClip
 
 from .util import read_json
 from .dataloader import get_assets
@@ -33,7 +27,8 @@ class FrameSequence:
 
 class animate:
     """Animates a cartoon that is lip synced to provieded audio voiceover."""
-    def __init__(self, audio_file: str, transcript: str, fps:int=48):
+
+    def __init__(self, audio_file: str, transcript: str = None, fps: int = 48):
         self.audio_file = audio_file
         self.sequence = FrameSequence()
         self.assets = get_assets()
@@ -57,14 +52,13 @@ class animate:
         # Create the animation
         self.compile_animation()
 
-
     def build_pose_sequence(self):
         """Creates the sequence of pose images for the video"""
         emotion = self.random_emotion()
         pose = random.choice(emotion)
 
         # Add a character pose frame for every frame of a mouth
-        for i,_ in enumerate(self.sequence.mouth_files):
+        for i, _ in enumerate(self.sequence.mouth_files):
             if self.sequence.pose_changes[i]:
                 # Change the pose of the character
                 emotion = self.random_emotion()
@@ -75,19 +69,17 @@ class animate:
             self.sequence.mouth_coords.append(pose.mouth_coordinates)
 
         # Prepend absolute path to all pose images
-        self.sequence.pose_files = [
-            f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files
-        ]
+        self.sequence.pose_files = [f"{os.path.dirname(__file__)}{file}" for file in self.sequence.pose_files]
 
         # Create mouth PIL image for every frame, with image transformations based on pose
-        for i,_ in enumerate(self.sequence.mouth_files):
+        for i, _ in enumerate(self.sequence.mouth_files):
             transformed_image = mouth_transformation(
                 mouth_file=self.sequence.mouth_files[i],
                 mouth_coord=self.sequence.mouth_coords[i],
             )
             self.sequence.mouth_images.append(transformed_image)
         return
-    
+
     def blink_manager(self, idx):
 
         BLINK_DURATION = 0.16
@@ -165,7 +157,7 @@ class animate:
                 final_frame = frame
             self.final_frames.append(final_frame)
 
-    def export(self, path:str, background: VideoClip, scale: float=0.7):
+    def export(self, path: str, background: VideoClip, scale: float = 0.7):
         animation_clip = ImageSequenceClip(self.final_frames, fps=self.fps, with_mask=True)
         new_height = int(background.size[1] * scale)
         new_width = int(animation_clip.w * (new_height / animation_clip.h))
@@ -173,18 +165,18 @@ class animate:
 
         # Overlay the animation on top of thee background clip
         final_clip = CompositeVideoClip(
-            clips=[background, animation_clip.set_position(("right", "bottom"))],
-            use_bgclip=True
+            clips=[background, animation_clip.set_position(("right", "bottom"))], use_bgclip=True
         )
 
         # Add speech audio to clip with 0.2 second delay
-        audio_clip= AudioFileClip(self.audio_file)
+        audio_clip = AudioFileClip(self.audio_file)
         audio_clip = CompositeAudioClip([audio_clip.set_start(0.2)])
         final_clip = final_clip.set_audio(audio_clip)
 
-        # Export video to .mp4 
-        final_clip.write_videofile(path, codec="libx264", audio_codec='aac', preset="ultrafast", threads=4, fps=self.fps)
-        
+        # Export video to .mp4
+        final_clip.write_videofile(
+            path, codec="libx264", audio_codec="aac", preset="ultrafast", threads=4, fps=self.fps
+        )
 
 
 def mouth_transformation(mouth_file, mouth_coord) -> Image:
@@ -224,8 +216,9 @@ def bgra_to_rgba(image):
     b, g, r, a = np.rollaxis(image, axis=-1)
     return np.dstack([r, g, b, a])
 
+
 def render_frame(pose_img: Image, mouth_img: Image, mouth_coord):
-    pose_img = bgra_to_rgba(pose_img) # convert to rgba
+    pose_img = bgra_to_rgba(pose_img)  # convert to rgba
     pose_img = Image.fromarray(pose_img)
     mouth_width, mouth_height = mouth_img.size
 
