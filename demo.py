@@ -1,5 +1,5 @@
 from pytoon.animator import animate
-from moviepy.editor import ImageClip
+from moviepy import ImageClip
 
 # Constants
 FPS = 48
@@ -23,7 +23,8 @@ animation = animate(audio_file=AUDIO_PATH, transcript=transcript)
 
 # Create a background clip
 background_clip = ImageClip(BACKGROUND_IMAGE)
-background_clip = background_clip.set_fps(FPS).set_duration(animation.duration)
+background_clip = background_clip.with_fps(FPS).with_duration(animation.duration)
+
 
 # Export the animation
 print(f"Exporting animation to {OUTPUT_VIDEO_1}...")
@@ -41,7 +42,7 @@ animation = animate(audio_file=AUDIO_PATH)
 
 # Create a background clip
 background_clip = ImageClip(BACKGROUND_IMAGE)
-background_clip = background_clip.set_fps(FPS).set_duration(animation.duration)
+background_clip = background_clip.with_fps(FPS).with_duration(animation.duration)
 
 # Export the animation
 print(f"Exporting animation to {OUTPUT_VIDEO_2}...")
