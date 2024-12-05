@@ -7,7 +7,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 import copy
-from moviepy.editor import ImageSequenceClip, CompositeVideoClip, CompositeAudioClip, AudioFileClip, VideoClip
+from moviepy import ImageSequenceClip, CompositeVideoClip, CompositeAudioClip, AudioFileClip, VideoClip
 
 from .util import read_json
 from .dataloader import get_assets
@@ -161,17 +161,17 @@ class animate:
         animation_clip = ImageSequenceClip(self.final_frames, fps=self.fps, with_mask=True)
         new_height = int(background.size[1] * scale)
         new_width = int(animation_clip.w * (new_height / animation_clip.h))
-        animation_clip = animation_clip.resize(width=new_width, height=new_height)
+        animation_clip = animation_clip.resized(width=new_width, height=new_height)
 
         # Overlay the animation on top of thee background clip
         final_clip = CompositeVideoClip(
-            clips=[background, animation_clip.set_position(("right", "bottom"))], use_bgclip=True
+            clips=[background, animation_clip.with_position(("right", "bottom"))], use_bgclip=True
         )
 
         # Add speech audio to clip with 0.2 second delay
         audio_clip = AudioFileClip(self.audio_file)
-        audio_clip = CompositeAudioClip([audio_clip.set_start(0.2)])
-        final_clip = final_clip.set_audio(audio_clip)
+        audio_clip = CompositeAudioClip([audio_clip.with_start(0.2)])
+        final_clip = final_clip.with_audio(audio_clip)
 
         # Export video to .mp4
         final_clip.write_videofile(

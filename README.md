@@ -32,7 +32,7 @@ If you have a transcript of the audio, you can directly pass it to the `animate`
 
 ```python
 from pytoon.animator import animate
-from moviepy.editor import VideoFileClip # Note: this example uses MoviePy v1.0.3
+from moviepy import VideoFileClip # Note: this example uses MoviePy v2.0.0 
 
 # Read audio transcript to a string.
 transcript_path = "./.temp/speech.txt"
@@ -55,7 +55,7 @@ If you do not have a transcript for the audio, PyToon can automatically generate
 
 ```python
 from pytoon.animator import animate
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 # Create a PyToon animation without providing a transcript
 animation = animate(

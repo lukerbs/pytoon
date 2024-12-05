@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "forcealign>=1.1.9",
-        "moviepy",
+        "moviepy>=2.0.0",
         "opencv-python",
         "scipy",
         "numpy",
